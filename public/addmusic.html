@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GWS Add Music</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="font-poppins bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
+                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+                <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+                <a href="music.html" class="hover:underline hover:text-blue-200 transition"><p>Music</p></a>
+                
+                <!-- Avatar with Dropdown -->
+                <div class="relative group flex items-center space-x-1">
+                    <button id="avatar-button" class="focus:outline-none">
+                        <img src="Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                    </button>
+                    <span id="username" class="text-white font-bold"></span>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                    </div>
+                </div>
+            </div>
+            <button class="md:hidden text-2xl" id="mobile-menu-button">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
+            <div class="container mx-auto py-4 flex flex-col space-y-4">
+                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+                <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+                <a href="login.html" class="text-red-400 hover:underline">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="p-8">
+   <h1 class="text-3xl font-bold text-[#2E619F]">
+    Music
+    </h1>
+        
+        <!-- Add Music Button -->
+        <div class="mb-8">
+            <button id="add-music-btn" class="bg-[#2E619F] hover:bg-[#245080] text-white px-6 py-3 rounded-lg font-medium transition duration-300 flex items-center space-x-2">
+                <i class="fas fa-plus"></i>
+                <span>Add Music</span>
+            </button>
+        </div>
+
+        <!-- Music List -->
+        <div class="space-y-4 mb-8">
+            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
+                <div class="flex items-center">
+                    <img src="Illustrations/calming.jpg" alt="Mountain landscape" class="w-14 h-14 rounded-lg object-cover mr-4">
+                    <h3 class="text-lg font-medium">Relaxing Music</h3>
+                </div>
+                
+                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
+                    <i class="fas fa-play text-white text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
+                <div class="flex items-center">
+                    <img src="Illustrations/peaceful.jpg" alt="Sunset with reeds" class="w-14 h-14 rounded-lg object-cover mr-4">
+                    <h3 class="text-lg font-medium">Calming Lo-Fi</h3>
+                </div>
+                
+                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
+                    <i class="fas fa-play text-white text-sm"></i>
+                </button>
+            </div>
+
+            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
+                <div class="flex items-center">
+                    <img src="Illustrations/calming.jpg" alt="Mountain landscape" class="w-14 h-14 rounded-lg object-cover mr-4">
+                    <h3 class="text-lg font-medium">Relaxing Music</h3>
+                </div>
+                
+                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
+                    <i class="fas fa-play text-white text-sm"></i>
+                </button>
+            </div>
+            
+            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
+                <div class="flex items-center">
+                    <img src="Illustrations/peaceful.jpg" alt="Sunset with reeds" class="w-14 h-14 rounded-lg object-cover mr-4">
+                    <h3 class="text-lg font-medium">Calming Lo-Fi</h3>
+                </div>
+                
+                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
+                    <i class="fas fa-play text-white text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Music Player Modal (Hidden by default) -->
+    <div id="music-player-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-lg font-semibold">Now Playing</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <img id="modal-image" src="" alt="Music cover" class="w-32 h-32 rounded-lg object-cover mx-auto mb-4">
+                <h4 id="modal-music-title" class="text-xl font-medium mb-4">Music Title</h4>
+                
+                <div class="flex justify-center space-x-4">
+                    <button id="prev-btn" class="h-12 w-12 bg-[#2E619F] text-white rounded-full flex items-center justify-center hover:bg-[#245080] transition">
+                        <i class="fas fa-backward"></i>
+                    </button>
+                    <button id="play-pause-btn" class="h-12 w-12 bg-[#2E619F] text-white rounded-full flex items-center justify-center hover:bg-[#245080] transition">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button id="next-btn" class="h-12 w-12 bg-[#2E619F] text-white rounded-full flex items-center justify-center hover:bg-[#245080] transition">
+                        <i class="fas fa-forward"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            mobileMenu.classList.toggle('show');
+        });
+
+        // Add Music Button
+        const addMusicBtn = document.getElementById('add-music-btn');
+        addMusicBtn.addEventListener('click', () => {
+            alert('Add Music functionality would be implemented here');
+        });
+
+        // Music Player Functionality
+        const playButtons = document.querySelectorAll('.play-button');
+        const musicItems = document.querySelectorAll('.music-item');
+        const modal = document.getElementById('music-player-modal');
+        const closeModal = document.getElementById('close-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalTitle = document.getElementById('modal-music-title');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+
+        let isPlaying = false;
+
+        // Play button click handler
+        playButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const title = button.getAttribute('data-title');
+                const img = button.getAttribute('data-img');
+                openMusicPlayer(title, img);
+            });
+        });
+
+        // Music item click handler
+        musicItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const title = item.getAttribute('data-title');
+                const img = item.getAttribute('data-img');
+                openMusicPlayer(title, img);
+            });
+        });
+
+        function openMusicPlayer(title, img) {
+            modalTitle.textContent = title;
+            modalImage.src = img;
+            modal.classList.remove('hidden');
+            isPlaying = true;
+            updatePlayButton();
+        }
+
+        // Close modal
+        closeModal.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+
+        // Play/Pause functionality
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            updatePlayButton();
+        });
+
+        function updatePlayButton() {
+            const icon = playPauseBtn.querySelector('i');
+            if (isPlaying) {
+                icon.className = 'fas fa-pause';
+            } else {
+                icon.className = 'fas fa-play';
+            }
+        }
+
+        // Previous and Next buttons (placeholder functionality)
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            console.log('Previous track');
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            console.log('Next track');
+        });
+
+        // Username display (you can set this from your login system)
+        document.addEventListener('DOMContentLoaded', () => {
+            // Example: Set username from localStorage or session
+            const username = localStorage.getItem('username');
+            document.getElementById('username').textContent = username;
+            document.getElementById('mobile-username').textContent = username;
+        });
+
+        // Avatar dropdown functionality
+        const avatarButton = document.getElementById('avatar-button');
+        const avatarDropdown = document.getElementById('avatar-dropdown');
+
+        avatarButton.addEventListener('click', () => {
+            avatarDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!avatarButton.contains(e.target) && !avatarDropdown.contains(e.target)) {
+                avatarDropdown.classList.add('hidden');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !modal.classList.contains('hidden')) {
+                e.preventDefault();
+                isPlaying = !isPlaying;
+                updatePlayButton();
+            }
+            if (e.code === 'Escape' && !modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

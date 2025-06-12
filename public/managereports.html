@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body class="font-poppins bg-white text-[#2E619F]">
+
+  <!-- Navbar -->
+  <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <div class="flex items-center">
+        <img src="Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+      </div>
+      <div class="hidden md:flex space-x-6 items-center">
+        <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Article</a>
+        <a href="addmusic.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+
+        <!-- Avatar with Dropdown -->
+        <div class="relative group flex items-center space-x-1">
+          <button id="avatar-button" class="focus:outline-none">
+            <img src="Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+          </button>
+          <span id="username" class="text-white font-bold"></span>
+
+          <!-- Dropdown Menu -->
+          <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+            <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+          </div>
+        </div>
+      </div>
+
+      <button class="md:hidden text-2xl" id="mobile-menu-button">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
+      <div class="container mx-auto py-4 flex flex-col space-y-4">
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+        <a href="addmusic.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <span id="mobile-username" class="text-white font-bold"></span>
+        <a href="login.html" class="text-red-400 hover:underline">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-6 py-10">
+    <!-- Title -->
+    <h1 class="text-3xl font-bold mb-6">Manage Reports</h1>
+
+    <!-- Date Dropdown and Sort -->
+    <div class="flex justify-between items-center border-b-4 border-[#2E619F] pb-2 mb-4">
+      <div>
+        <button class="bg-[#2E619F] text-white px-4 py-2 font-semibold rounded-md text-sm">
+          Friday, March 14th <i class="fas fa-chevron-down ml-1"></i>
+        </button>
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div class="relative">
+        <button id="sort-button" class="text-black text-sm font-medium focus:outline-none">
+          Sort by <i class="fas fa-caret-down"></i>
+        </button>
+        <div id="sort-options" class="hidden absolute right-0 mt-2 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Newest</a>
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Oldest</a>
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Type</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Title -->
+    <div class="text-[#2E619F] font-semibold mb-2">
+      Received Reports:
+    </div>
+    <hr class="border-[#2E619F] mb-2" />
+
+    <!-- Report Item -->
+    <div class="cursor-pointer hover:bg-gray-100 transition rounded-md px-3 py-3 mb-2 border-b border-[#2E619F] flex items-start space-x-4"
+         onclick="alert('Open Bug Report Details')">
+      <i class="fas fa-bug text-2xl text-black pt-1"></i>
+      <div>
+        <h2 class="text-lg font-bold text-black">Bug Found</h2>
+        <p class="text-sm text-black">Error updating profile picture</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle avatar dropdown
+    const avatarButton = document.getElementById('avatar-button');
+    const avatarDropdown = document.getElementById('avatar-dropdown');
+    avatarButton.addEventListener('click', () => {
+      avatarDropdown.classList.toggle('hidden');
+    });
+    document.addEventListener('click', function (e) {
+      if (!avatarButton.contains(e.target) && !avatarDropdown.contains(e.target)) {
+        avatarDropdown.classList.add('hidden');
+      }
+    });
+
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // Sort dropdown
+    const sortButton = document.getElementById("sort-button");
+    const sortOptions = document.getElementById("sort-options");
+    sortButton.addEventListener("click", () => {
+      sortOptions.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!sortButton.contains(e.target) && !sortOptions.contains(e.target)) {
+        sortOptions.classList.add("hidden");
+      }
+    });
+
+    // Load username
+    window.addEventListener('DOMContentLoaded', () => {
+      const username = localStorage.getItem('username');
+      document.getElementById('username').textContent = username;
+      document.getElementById('mobile-username').textContent = username;
+    });
+  </script>
+</body>
+</html>

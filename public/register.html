@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Sign Up Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      .spinner {
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top: 3px solid white;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="flex bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
+      <div class="hidden md:flex md:w-1/2 bg-[#2E619F] items-center justify-center p-10">
+        <img alt="Person Sitting Illustration" class="w-full h-auto" height="400" src="../Illustrations/dancing2.png" width="400"/>
+      </div>
+      <div class="w-full md:w-1/2 p-8">
+        <h2 class="text-2xl font-bold text-[#2E619F] mb-2">Register here</h2>
+        <p class="text-gray-600 mb-6">Register to have access to all of our features!</p>
+        
+        <!-- Status message -->
+        <div id="statusMessage" class="mb-4 py-2 px-4 rounded-lg hidden"></div>
+        
+        <!-- FORM -->
+        <form id="signupForm">
+          <div class="mb-4">
+            <label class="block text-gray-700">Name</label>
+            <input
+              id="nameInput"
+              class="w-full border border-[#2E619F] rounded-lg py-2 px-4 mt-2"
+              placeholder="Enter Your Name"
+              type="text"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700">Email</label>
+            <input
+              id="emailInput"
+              class="w-full border border-[#2E619F] rounded-lg py-2 px-4 mt-2"
+              placeholder="example@someone.com"
+              type="email"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700">Password</label>
+            <input
+              id="passwordInput"
+              class="w-full border border-[#2E619F] rounded-lg py-2 px-4 mt-2"
+              placeholder="Input Password"
+              type="password"
+              minlength="6"
+              required
+            />
+            <p class="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+          </div>
+          <button 
+            id="registerButton" 
+            type="submit" 
+            class="w-full bg-[#2E619F] text-white rounded-lg py-2 flex items-center justify-center"
+          >
+            <span>Register</span>
+          </button>
+        </form>
+
+        <p class="text-center text-gray-600 mt-4">
+          Already have an account?
+          <a class="text-blue-600" href="login.html">Log In here.</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- SCRIPT SECTION -->
+    <script>
+      // Initialize Supabase client
+      const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co'
+      const supabaseKey = process.env.SUPABASE_KEY
+      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+      // Function to show status message
+      function showMessage(message, isError = false) {
+        const statusDiv = document.getElementById('statusMessage');
+        statusDiv.textContent = message;
+        statusDiv.className = `mb-4 py-2 px-4 rounded-lg ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+        statusDiv.classList.remove('hidden');
+      }
+
+      // Function to show loading state
+      function setLoading(isLoading) {
+        const button = document.getElementById('registerButton');
+        if (isLoading) {
+          button.innerHTML = '<div class="spinner"></div> <span>Processing...</span>';
+          button.disabled = true;
+          button.classList.add('opacity-75');
+        } else {
+          button.innerHTML = '<span>Register</span>';
+          button.disabled = false;
+          button.classList.remove('opacity-75');
+        }
+      }
+
+      // Sign-up form handler
+      document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Show loading state
+        setLoading(true);
+        
+        const name = document.getElementById('nameInput').value;
+        const email = document.getElementById('emailInput').value;
+        const password = document.getElementById('passwordInput').value;
+        
+        try {
+          // Create user with email/password in Supabase Auth
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                name: name // optional - adds to user metadata
+              }
+            }
+          });
+
+          if (signUpError) {
+            throw signUpError;
+          }
+
+          // (Optional) Insert user profile to your 'users' table
+          // NOTE: You must create 'users' table first in Supabase if you want this.
+          const { data: profileData, error: profileError } = await supabase
+            .from('users') // CHANGE this if your table is different
+            .insert([
+              {
+                id: signUpData.user.id, // use same user ID as auth
+                name: name,
+                email: email,
+                created_at: new Date().toISOString()
+              }
+            ]);
+
+          if (profileError) {
+            console.warn('Profile insert error (ignored):', profileError.message);
+          }
+
+          // Show success message
+          showMessage("Registration successful! Redirecting to login page...");
+          
+          // Redirect after a short delay
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+          
+        } catch (error) {
+          console.error("Error signing up:", error);
+          setLoading(false);
+          showMessage(error.message || 'An unexpected error occurred.', true);
+        }
+      });
+    </script>
+  </body>
+</html>

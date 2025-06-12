@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Tracker - GWS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .mood-button {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .mood-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .mood-button.selected {
+            background-color: #3B82F6;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .editor {
+            padding: 20px;
+            min-height: 200px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            resize: none;
+            width: 100%;
+            font-family: Poppins, sans-serif;
+            position: relative;
+        }
+         
+        .editor-container {
+            position: relative;
+        }
+        
+        .date-badge {
+            background: linear-gradient(135deg, #3B82F6, #1E40AF);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+                <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+                <div class="relative group flex items-center space-x-1">
+                    <button id="avatar-button" class="focus:outline-none">
+                        <img src="Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                    </button>
+                    <span id="username" class="text-white font-bold">Lucille</span>
+                    <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                    </div>
+                </div>
+            </div>
+            <button class="md:hidden text-2xl" id="mobile-menu-button">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center pb-2 mb-4">
+            <button class="bg-[#2E619F] text-white px-4 py-2 font-semibold rounded-md text-sm">
+                Friday, March 14th <i class="fas fa-chevron-down ml-1"></i>
+            </button>
+            <button class="bg-[#2E619F] text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-800 transition" onclick="window.location.href = 'moodlog.html'">
+                Mood Log
+            </button>
+        </div>
+
+        <!-- Mood Selection -->
+        <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">How are you feeling today?</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <!-- Happy Button -->
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="happy">
+                    <div class="mr-3">
+                        <img src="Illustrations/happy.png" alt="happy emoji" class="h-8 md:h-10 w-auto mr-2">
+                    </div>
+                    <span class="text-lg font-medium text-blue-600">Happy</span>
+                </div>
+                
+                <!-- Neutral Button -->
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="neutral">
+                    <div class="mr-3">
+                        <img src="Illustrations/neutral.png" alt="neutral emoji" class="h-8 md:h-10 w-auto mr-2">
+                    </div>
+                    <span class="text-lg font-medium text-blue-600">Neutral</span>
+                </div>
+                
+                <!-- Angry Button -->
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="angry">
+                    <div class="mr-3">
+                        <img src="Illustrations/angry.png" alt="angry emoji" class="h-8 md:h-10 w-auto mr-2">
+                    </div>
+                    <span class="text-lg font-medium text-blue-600">Angry</span>
+                </div>
+                
+                <!-- Sad Button -->
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="sad">
+                    <div class="mr-3">
+                        <img src="Illustrations/sad.png" alt="sad emoji" class="h-8 md:h-10 w-auto mr-2">
+                    </div>
+                    <span class="text-lg font-medium text-blue-600">Sad</span>
+                </div>
+            </div>
+
+            <!-- Text Input Area -->
+            <div class="editor-container bg-gray-50 rounded-xl border-2 border-blue-200 focus-within:border-blue-400 transition-colors">
+                <div class="editor" contenteditable="true" placeholder="Insert your thoughts here...">
+                    <p class="text-gray-400">Insert your thoughts here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="mt-6 flex justify-end">
+      <button onclick="saveMoodLog()" class="bg-[#2E619F] text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-800 transition">
+        Save
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#2E619F] p-8 text-white mt-16">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <img src="Illustrations/Logo.png" alt="GWS logo" class="h-10 w-auto">
+                </div>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 text-center md:text-left">
+                    <div>
+                        <h3 class="font-bold mb-2">Navigation</h3>
+                        <div class="flex flex-col space-y-2">
+                            <a href="login.html" class="hover:underline">Journal</a>
+                            <a href="login.html" class="hover:underline">Tracker</a>
+                            <a href="login.html" class="hover:underline">Meditation</a>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-2">Resources</h3>
+                        <div class="flex flex-col space-y-2">
+                            <a href="login.html" class="hover:underline">Music</a>
+                            <a href="#" class="hover:underline">Help Center</a>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-2">Connect</h3>
+                        <div class="flex space-x-4 justify-center md:justify-start">
+                            <a href="#" class="text-2xl hover:text-blue-200" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="text-2xl hover:text-blue-200" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="text-2xl hover:text-blue-200" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                            <a href="#" class="text-2xl hover:text-blue-200" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-4 border-t border-blue-400 text-center text-sm">
+                <p>&copy; 2023 GWS. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let selectedMood = null;
+        
+        // Handle mood selection
+        document.querySelectorAll('.mood-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove selected class from all buttons
+                document.querySelectorAll('.mood-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked button
+                this.classList.add('selected');
+                selectedMood = this.dataset.mood;
+            });
+        });
+        
+        // Handle placeholder text in editor
+        const editor = document.querySelector('.editor');
+        editor.addEventListener('focus', function() {
+            if (this.textContent.trim() === 'Insert your thoughts here...') {
+                this.innerHTML = '';
+                this.style.color = '#333';
+            }
+        });
+        
+        editor.addEventListener('blur', function() {
+            if (this.textContent.trim() === '') {
+                this.innerHTML = '<p class="text-gray-400">Insert your thoughts here...</p>';
+            }
+        });
+        
+        // Update current date
+        function updateDate() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric',
+            };
+            const dateString = now.toLocaleDateString('en-US', options);
+            const formattedDate = dateString.replace(/(\d+),/, '$1th -');
+            document.getElementById('current-date').textContent = formattedDate;
+        }
+        
+        // Save mood log function
+        function saveMoodLog() {
+            //backend di sini
+
+            window.location.href = 'moodlog.html'
+            alert(`Mood log saved!\nMood: ${selectedMood}\nThoughts: ${thoughts.substring(0, 50)}...`);
+            
+            // Redirect to another page (replace with your desired URL)
+            // window.location.href = 'mood-history.html';
+        }
+        
+        
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            // Add mobile menu functionality here if needed
+        });
+    </script>
+</body>
+</html>

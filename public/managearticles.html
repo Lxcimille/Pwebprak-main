@@ -1,0 +1,102 @@
+<!-- manage-articles.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Articles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-white text-[#2E619F] font-poppins">
+
+  <!-- Include Navbar (copy dari dashboardadmin.html) -->
+  <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <div class="flex items-center">
+        <img src="Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+      </div>
+      <div class="hidden md:flex space-x-6 items-center">
+        <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Article</a>
+        <a href="addmusic.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <div class="relative group flex items-center space-x-1">
+          <button id="avatar-button" class="focus:outline-none">
+            <img src="Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+          </button>
+          <span id="username" class="text-white font-bold"></span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="max-w-4xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold mb-6">Manage Articles</h1>
+
+    <!-- Filter and Sort -->
+    <div class="flex justify-between items-center border-b-4 border-[#2E619F] pb-2 mb-4">
+      <button class="bg-[#2E619F] text-white px-4 py-2 font-semibold rounded-md text-sm">
+        Friday, March 14th <i class="fas fa-chevron-down ml-1"></i>
+      </button>
+
+      <div class="relative">
+        <button id="sort-btn" class="text-black text-sm font-medium">Sort by <i class="fas fa-caret-down"></i></button>
+        <div id="sort-menu" class="hidden absolute right-0 mt-2 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-10">
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Newest</a>
+          <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Oldest</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article List -->
+    <div id="article-list" class="space-y-4">
+      <!-- Article Item -->
+<div class="flex justify-between items-start border-b border-[#2E619F] pb-2 group">
+  <div onclick="window.location.href='articleitem.html'"
+       class="cursor-pointer pr-4 w-full group-hover:bg-gray-100 transition rounded-md">
+    <h2 class="font-bold text-black">Anxiety Disorder</h2>
+    <p class="text-sm text-black">Lorem ipsum dolor sit amet, ini adalah journal description ya mamet</p>
+  </div>
+  
+  <!-- Tombol hapus -->
+  <button onclick="event.stopPropagation(); deleteArticle(this)" 
+          class="text-black hover:text-red-600 mt-1">
+    <i class="fas fa-trash"></i>
+  </button>
+</div>
+
+
+  <!-- Floating Button -->
+  <button onclick="window.location.href='addarticle.html'"
+    class="fixed bottom-6 right-6 bg-[#2E619F] text-white rounded-full w-16 h-16 flex items-center justify-center text-3xl hover:bg-blue-800 shadow-lg">
+    +
+  </button>
+
+  <script>
+    document.getElementById('sort-btn').addEventListener('click', () => {
+      document.getElementById('sort-menu').classList.toggle('hidden');
+    });
+
+    function deleteArticle(button) {
+      if (confirm("Delete this article?")) {
+        button.closest('div').remove();
+      }
+    }
+
+    // Dummy username
+    window.addEventListener('DOMContentLoaded', () => {
+      const username = localStorage.getItem('username');
+      document.getElementById('username').textContent = username;
+    });
+  </script>
+</body>
+</html>

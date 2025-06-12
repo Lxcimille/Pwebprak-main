@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GWS Journal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Poppins, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        .main-content {
+            max-width: 1100px;
+            margin: 20px auto;
+            background-color: white;
+            min-height: 600px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #2E619F;
+            color: white;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .date {
+            font-size: 1.1rem;
+            flex: 1;
+            margin-right: 30px;
+        }
+        
+        .formatting-tools {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .formatting-tools button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+        
+        .formatting-tools button:hover {
+            opacity: 0.8;
+        }
+        
+        .formatting-tools button.active {
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+        
+        .editor {
+            padding: 20px;
+            min-height: 400px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            resize: none;
+            width: 100%;
+            font-family: Poppins, sans-serif;
+            position: relative;
+        }
+        
+        .editor-container {
+            position: relative;
+        }
+        
+        .date-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .date-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date-button:hover {
+            opacity: 0.8;
+        }
+        
+        .calendar-dropdown {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1000;
+            top: 100%;
+            left: 0;
+            min-width: 280px;
+            padding: 15px;
+            color: #333;
+        }
+        
+        .calendar-dropdown.show {
+            display: block;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .calendar-nav {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .calendar-nav:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        
+        .calendar-day {
+            padding: 8px 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .calendar-day:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .calendar-day.today {
+            background-color: #2E619F;
+            color: white;
+        }
+        
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+        
+        .calendar-weekday {
+            font-weight: bold;
+            color: #666;
+            padding: 8px 4px;
+            font-size: 12px;
+        }
+        
+        .placeholder-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #aaa;
+            pointer-events: none;
+            font-style: italic;
+        }
+
+        /* Custom Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2E619F;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .modal-btn-primary {
+            background-color: #2E619F;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background-color: #1e4a7f;
+        }
+
+        .modal-btn-secondary {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .modal-btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .font-size-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .font-size-btn {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .font-size-btn:hover {
+            border-color: #2E619F;
+            background-color: #f8f9ff;
+        }
+
+        .more-options-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .more-option-btn {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .more-option-btn:hover {
+            border-color: #2E619F;
+            background-color: #f8f9ff;
+        }
+
+        .more-option-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2E619F;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .more-option-text {
+            flex: 1;
+        }
+
+        .more-option-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .more-option-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #2E619F;
+        }
+        
+        @media (max-width: 768px) {
+            .formatting-tools {
+                gap: 15px;
+            }
+            
+            .formatting-tools button {
+                font-size: 0.9rem;
+            }
+            
+            .main-content {
+                margin: 10px;
+            }
+            
+            .toolbar {
+                padding: 12px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation bar using Tailwind CSS from the provided code -->
+    <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+                <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+                
+                <!-- Avatar with Dropdown -->
+                <div class="relative group flex items-center space-x-1">
+                    <button id="avatar-button" class="focus:outline-none">
+                        <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                    </button>
+                    <span id="username" class="text-white font-bold">Lucille</span>
+                    
+                    <!-- Dropdown Menu -->
+                    <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                    </div>
+                </div>
+            </div>
+            <button class="md:hidden text-2xl" id="mobile-menu-button">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
+            <div class="container mx-auto py-4 flex flex-col space-y-4">
+                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+                <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+                <a href="login.html" class="text-red-400 hover:underline">Log Out</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main journal content area -->
+    <div class="main-content">
+        <div class="toolbar">
+            <div class="date-dropdown">
+                <button class="date-button" id="date-button" onclick="toggleCalendar()">
+                    <span id="current-date">Today</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="calendar-dropdown" id="calendar-dropdown">
+                    <div class="calendar-header">
+                        <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+                        <span id="calendar-month-year"></span>
+                        <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+            </div>
+            <div class="formatting-tools">
+                <button title="Bold" onclick="formatText('bold')" id="bold-btn"><i class="fas fa-bold"></i></button>
+                <button title="Italic" onclick="formatText('italic')" id="italic-btn"><i class="fas fa-italic"></i></button>
+                <button title="Underline" onclick="formatText('underline')" id="underline-btn"><i class="fas fa-underline"></i></button>
+                <button title="Text format" onclick="showFontMenu()" id="font-btn"><i class="fas fa-font"></i></button>
+                <button title="Align Left" onclick="formatText('justifyLeft')" id="left-btn"><i class="fas fa-align-left"></i></button>
+                <button title="Align Center" onclick="formatText('justifyCenter')" id="center-btn"><i class="fas fa-align-center"></i></button>
+                <button title="Bullet List" onclick="formatText('insertUnorderedList')" id="ul-btn"><i class="fas fa-list-ul"></i></button>
+                <button title="Numbered List" onclick="formatText('insertOrderedList')" id="ol-btn"><i class="fas fa-list-ol"></i></button>
+                <button title="Link" onclick="insertLink()" id="link-btn"><i class="fas fa-link"></i></button>
+                <button title="Image" onclick="insertImageFromFile()" id="image-btn"><i class="far fa-image"></i></button>
+                <button title="Emoji" onclick="insertEmoji()" id="emoji-btn"><i class="far fa-smile"></i></button>
+                <button title="Journal Log" onclick="goToJournalLog()" id="journal-log-btn"><i class="fas fa-book"></i></button>
+                <button title="More options" onclick="showMoreOptions()" id="more-btn"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+        </div>
+        
+        <div class="editor-container">
+            <div class="editor" 
+                 contenteditable="true" 
+                 id="journal-editor"
+                 onkeyup="updateToolbarState(); togglePlaceholder()"
+                 onmouseup="updateToolbarState()"
+                 onfocus="togglePlaceholder()"
+                 onblur="togglePlaceholder()">
+            </div>
+            <div class="placeholder-overlay" id="placeholder-text">
+                Start writing your journal entry...
+            </div>
+        </div>
+        
+        <!-- Hidden file input for image upload -->
+        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+    </div>
+
+    <!-- Custom Modals -->
+    <!-- Font Size Modal -->
+    <div class="modal-overlay" id="font-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Font Size</h3>
+                <button class="modal-close" onclick="closeModal('font-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="font-size-options">
+                    <button class="font-size-btn" onclick="applyFontSize('12px')">
+                        <div style="font-size: 12px;">Small Text</div>
+                        <small>12px</small>
+                    </button>
+                    <button class="font-size-btn" onclick="applyFontSize('16px')">
+                        <div style="font-size: 16px;">Normal Text</div>
+                        <small>16px</small>
+                    </button>
+                    <button class="font-size-btn" onclick="applyFontSize('20px')">
+                        <div style="font-size: 20px;">Large Text</div>
+                        <small>20px</small>
+                    </button>
+                    <button class="font-size-btn" onclick="applyFontSize('24px')">
+                        <div style="font-size: 24px;">X-Large Text</div>
+                        <small>24px</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- More Options Modal -->
+    <div class="modal-overlay" id="more-options-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">More Options</h3>
+                <button class="modal-close" onclick="closeModal('more-options-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="more-options-grid">
+                    <button class="more-option-btn" onclick="formatText('removeFormat'); closeModal('more-options-modal')">
+                        <div class="more-option-icon">
+                            <i class="fas fa-eraser"></i>
+                        </div>
+                        <div class="more-option-text">
+                            <div class="more-option-title">Clear Format</div>
+                            <div class="more-option-desc">Remove all formatting from selected text</div>
+                        </div>
+                    </button>
+                    <button class="more-option-btn" onclick="saveEntry(); closeModal('more-options-modal')">
+                        <div class="more-option-icon">
+                            <i class="fas fa-save"></i>
+                        </div>
+                        <div class="more-option-text">
+                            <div class="more-option-title">Save Entry</div>
+                            <div class="more-option-desc">Save your journal entry to local storage</div>
+                        </div>
+                    </button>
+                    <button class="more-option-btn" onclick="showClearConfirmation()">
+                        <div class="more-option-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="more-option-text">
+                            <div class="more-option-title">Clear All</div>
+                            <div class="more-option-desc">Remove all content from the editor</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link Modal -->
+    <div class="modal-overlay" id="link-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Insert Link</h3>
+                <button class="modal-close" onclick="closeModal('link-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label class="input-label" for="link-url">URL</label>
+                    <input type="url" id="link-url" class="input-field" placeholder="https://example.com">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="link-text">Link Text (optional)</label>
+                    <input type="text" id="link-text" class="input-field" placeholder="Click here">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('link-modal')">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="applyLink()">Insert Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Confirmation Modal -->
+    <div class="modal-overlay" id="clear-confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Clear All Content</h3>
+                <button class="modal-close" onclick="closeModal('clear-confirmation-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to clear all content? This action cannot be undone.</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('clear-confirmation-modal')">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmClearEditor()">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Calendar functionality
+        let currentCalendarDate = new Date();
+        let selectedDate = new Date();
+        
+        function setCurrentDate() {
+            const options = { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric',
+                year: 'numeric'
+            };
+            document.getElementById('current-date').textContent = selectedDate.toLocaleDateString('en-US', options);
+        }
+
+        function toggleCalendar() {
+            const dropdown = document.getElementById('calendar-dropdown');
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            } else {
+                dropdown.classList.add('show');
+                updateCalendar();
+            }
+        }
+
+        function updateCalendar() {
+            const monthYear = document.getElementById('calendar-month-year');
+            const grid = document.getElementById('calendar-grid');
+            
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            monthYear.textContent = new Date(year, month).toLocaleDateString('en-US', { 
+                month: 'long', 
+                year: 'numeric' 
+            });
+            
+            // Clear grid
+            grid.innerHTML = '';
+            
+            // Add weekday headers
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            weekdays.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-weekday';
+                dayElement.textContent = day;
+                grid.appendChild(dayElement);
+            });
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            
+            // Add previous month's trailing days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day other-month';
+                dayElement.textContent = daysInPrevMonth - i;
+                grid.appendChild(dayElement);
+            }
+            
+            // Add current month's days
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                const dayDate = new Date(year, month, day);
+                if (dayDate.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
+                }
+                
+                dayElement.onclick = () => selectDate(new Date(year, month, day));
+                grid.appendChild(dayElement);
+            }
+            
+            // Add next month's leading days
+            const totalCells = grid.children.length;
+            const remainingCells = 42 - totalCells; // 6 rows × 7 days
+            for (let day = 1; day <= remainingCells && day <= 14; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day other-month';
+                dayElement.textContent = day;
+                grid.appendChild(dayElement);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+            updateCalendar();
+        }
+
+        function selectDate(date) {
+            selectedDate = date;
+            setCurrentDate();
+            toggleCalendar();
+            loadEntryForDate(date);
+        }
+
+        // Close calendar when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('calendar-dropdown');
+            const button = document.getElementById('date-button');
+            
+            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Initialize date on page load
+        selectedDate = new Date(); // Set to today's date
+        setCurrentDate();
+        
+        // Mobile menu toggle functionality
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Text formatting functions
+        function formatText(command, value = null) {
+            const editor = document.getElementById('journal-editor');
+            editor.focus();
+            
+            // Special handling for list commands
+            if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
+                document.execCommand(command, false, null);
+            } else {
+                document.execCommand(command, false, value);
+            }
+            
+            updateToolbarState();
+            togglePlaceholder();
+        }
+
+        // Placeholder functionality
+        function togglePlaceholder() {
+            const editor = document.getElementById('journal-editor');
+            const placeholder = document.getElementById('placeholder-text');
+            
+            if (editor.textContent.trim() === '' && editor.innerHTML.trim() === '') {
+                placeholder.style.display = 'block';
+            } else {
+                placeholder.style.display = 'none';
+            }
+        }
+
+        // Image upload functionality
+        function insertImageFromFile() {
+            document.getElementById('image-upload').click();
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.margin = '10px 0';
+                    
+                    // Insert the image at cursor position
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        range.insertNode(img);
+                        range.setStartAfter(img);
+                        range.setEndAfter(img);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    } else {
+                        document.getElementById('journal-editor').appendChild(img);
+                    }
+                    
+                    togglePlaceholder();
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Reset the input
+            event.target.value = '';
+        }
+
+        function insertLink() {
+            showModal('link-modal');
+        }
+
+        function showFontMenu() {
+            showModal('font-modal');
+        }
+
+        function showMoreOptions() {
+            showModal('more-options-modal');
+        }
+
+        // Modal functionality
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function applyFontSize(size) {
+            formatText('fontSize', size);
+            closeModal('font-modal');
+        }
+
+        function applyLink() {
+            const url = document.getElementById('link-url').value;
+            const text = document.getElementById('link-text').value;
+            
+            if (url) {
+                if (text) {
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.textContent = text;
+                        link.target = '_blank';
+                        range.insertNode(link);
+                    } else {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.textContent = text;
+                        link.target = '_blank';
+                        document.getElementById('journal-editor').appendChild(link);
+                    }
+                } else {
+                    formatText('createLink', url);
+                }
+                
+                // Clear inputs
+                document.getElementById('link-url').value = '';
+                document.getElementById('link-text').value = '';
+                closeModal('link-modal');
+                togglePlaceholder();
+            }
+        }
+
+        function showClearConfirmation() {
+            closeModal('more-options-modal');
+            showModal('clear-confirmation-modal');
+        }
+
+        function confirmClearEditor() {
+            document.getElementById('journal-editor').innerHTML = '';
+            document.getElementById('journal-editor').focus();
+            togglePlaceholder();
+            closeModal('clear-confirmation-modal');
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal-overlay');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    closeModal(modal.id);
+                }
+            });
+        });
+
+        function insertEmoji() {
+            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🌟', '💡', '🔥', '✨', '🎯'];
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            formatText('insertText', emoji);
+        }
+
+        // Modified save entry function with redirect removed
+        function saveEntry() {
+            const content = document.getElementById('journal-editor').innerHTML;
+            const dateKey = selectedDate.toISOString().split('T')[0];
+            
+            if (content.trim()) {
+                // Get existing entries or create new object
+                const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
+                
+                // Save current entry with date as key
+                allEntries[dateKey] = {
+                    content: content,
+                    date: selectedDate.toISOString(),
+                    formattedDate: document.getElementById('current-date').textContent
+                };
+                
+                // Save back to localStorage
+                localStorage.setItem('journalEntries', JSON.stringify(allEntries));
+                
+                alert('Journal entry saved successfully!');
+                
+            } else {
+                alert('Please write something before saving.');
+            }
+        }
+
+        // New function to go to journal log
+        function goToJournalLog() {
+            // Auto-save current entry before navigating
+            const content = document.getElementById('journal-editor').innerHTML;
+            if (content.trim()) {
+                const dateKey = selectedDate.toISOString().split('T')[0];
+                const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
+                
+                allEntries[dateKey] = {
+                    content: content,
+                    date: selectedDate.toISOString(),
+                    formattedDate: document.getElementById('current-date').textContent
+                };
+                
+                localStorage.setItem('journalEntries', JSON.stringify(allEntries));
+            }
+            
+            // Navigate to journal.html
+            window.location.href = 'journal.html';
+        }
+
+        // Load entry for selected date
+        function loadEntryForDate(date) {
+            const dateKey = date.toISOString().split('T')[0];
+            const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
+            const editor = document.getElementById('journal-editor');
+            
+            if (allEntries[dateKey]) {
+                editor.innerHTML = allEntries[dateKey].content;
+            } else {
+                editor.innerHTML = '';
+            }
+            
+            togglePlaceholder();
+        }
+
+        function clearEditor() {
+            showClearConfirmation();
+        }
+
+        // Update toolbar button states based on current selection
+        function updateToolbarState() {
+            const commands = ['bold', 'italic', 'underline'];
+            commands.forEach(command => {
+                const button = document.getElementById(command + '-btn');
+                if (button) {
+                    if (document.queryCommandState(command)) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // Focus on editor when page loads and initialize
+        window.addEventListener('load', function() {
+            setCurrentDate();
+            loadEntryForDate(selectedDate);
+            togglePlaceholder();
+            document.getElementById('journal-editor').focus();
+        });
+
+        // Modified auto-save functionality (saves without redirect)
+        setInterval(function() {
+            const content = document.getElementById('journal-editor').innerHTML;
+            if (content.trim()) {
+                const dateKey = selectedDate.toISOString().split('T')[0];
+                
+                // Get existing entries or create new object
+                const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
+                
+                // Save current entry with date as key
+                allEntries[dateKey] = {
+                    content: content,
+                    date: selectedDate.toISOString(),
+                    formattedDate: document.getElementById('current-date').textContent
+                };
+                
+                // Save back to localStorage
+                localStorage.setItem('journalEntries', JSON.stringify(allEntries));
+                
+                console.log('Entry auto-saved');
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
