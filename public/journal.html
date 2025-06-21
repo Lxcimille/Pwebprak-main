@@ -28,6 +28,14 @@
         cursor: pointer;
     }
   </style>
+  <!-- Add Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Initialize Supabase
+    const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+  </script>
 </head>
 <body class="font-poppins bg-white">
 
@@ -39,18 +47,18 @@
         </div>
         <div class="hidden md:flex space-x-6 items-center">
             <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-            <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+            <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
             <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
             <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
             <div class="relative group flex items-center space-x-1">
                 <button id="avatar-button" class="focus:outline-none">
-                    <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                    <img id="user-avatar" src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
                 </button>
-                <span id="username" class="text-white font-bold">Lucille</span>
+                <span id="username" class="text-white font-bold">Loading...</span>
                 <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                    <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                    <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                    <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                    <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
                 </div>
             </div>
         </div>
@@ -66,7 +74,7 @@
             <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
             <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
             <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
-            <a href="login.html" class="text-red-400 hover:underline">Logout</a>
+            <a href="#" id="mobile-logout-btn" class="text-red-400 hover:underline">Logout</a>
         </div>
     </div>
   </nav>
@@ -77,7 +85,7 @@
     
     <div class="flex justify-between items-center mb-6">
       <div class="flex items-center bg-[#5B8EC3] text-white px-4 py-2 rounded">
-        <span class="text-sm font-medium mr-2">Friday, March 14th</span>
+        <span id="current-date-display" class="text-sm font-medium mr-2">Loading date...</span>
         <button class="text-white">
           <i class="fas fa-caret-down"></i>
         </button>
@@ -97,7 +105,13 @@
 
     <!-- Empty Message -->
     <div id="empty-state" class="text-center py-16 text-gray-400 hidden">
-      <p class="text-lg mb-2">Start adding your entries by clicking the '+' button.</p>
+      <p class="text-lg mb-2">No journal entries found. Start by creating your first entry.</p>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="text-center py-16">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2E619F] mx-auto mb-4"></div>
+      <p>Loading your journal entries...</p>
     </div>
   </div>
 
@@ -108,208 +122,160 @@
     </button>
   </a>
 
-  <!-- JS Section -->
   <script>
-    // Dropdown toggle
-    document.getElementById('avatar-button').addEventListener('click', function(e) {
+    // Format date for display
+    function formatDisplayDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    // Format time for display
+    function formatTime(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    }
+
+    // Extract preview text from content
+    function getEntryPreview(content) {
+      if (!content) return { title: 'Untitled Entry', description: '' };
+      
+      // Create temporary element to parse HTML
+      const temp = document.createElement('div');
+      temp.innerHTML = content;
+      const text = temp.textContent || temp.innerText || '';
+      
+      // Get first 50 characters for title
+      const title = text.substring(0, 50).trim();
+      // Get next 120 characters for description
+      const description = text.substring(50, 170).trim();
+      
+      return {
+        title: title || 'Untitled Entry',
+        description: description ? description + (text.length > 170 ? '...' : '') : ''
+      };
+    }
+
+    // Load journal entries from Supabase
+    async function loadJournalEntries() {
+      try {
+        // Show loading state
+        document.getElementById('loading-state').classList.remove('hidden');
+        document.getElementById('empty-state').classList.add('hidden');
+        
+        // Get current user
+        const { data: { user }, error: userError } = await client.auth.getUser();
+        if (userError || !user) throw userError || new Error('Not authenticated');
+        
+        // Update UI with user info
+        document.getElementById('username').textContent = user.user_metadata?.full_name || user.email || 'User';
+        
+        // Fetch entries from Supabase
+        const { data: entries, error } = await client
+          .from('entry_journal')
+          .select('id_entri, judul_journal, teks_journal, tanggal_journal, created_at')
+          .eq('user_id', user.id)
+          .order('tanggal_journal', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Update current date display
+        const now = new Date();
+        document.getElementById('current-date-display').textContent = formatDisplayDate(now);
+        
+        // Clear entries container
+        const entriesContainer = document.getElementById('journal-entries');
+        entriesContainer.innerHTML = '';
+        
+        if (!entries || entries.length === 0) {
+          document.getElementById('empty-state').classList.remove('hidden');
+          return;
+        }
+        
+        // Process and display entries
+        entries.forEach(entry => {
+          const entryElement = document.createElement('div');
+          entryElement.className = 'journal-card border-b border-[#2E619F] px-4 py-5 hover:bg-gray-50 transition-colors cursor-pointer';
+          
+          const { title, description } = getEntryPreview(entry.teks_journal);
+          const entryDate = entry.tanggal_journal || entry.created_at;
+          
+          entryElement.innerHTML = `
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">${entry.judul_journal || title}</h3>
+                <p class="text-sm text-gray-500 mb-2">${formatDisplayDate(entryDate)}</p>
+                ${description ? `<p class="text-gray-600 leading-relaxed">${description}</p>` : ''}
+              </div>
+              <div class="ml-4 flex-shrink-0">
+                <span class="text-sm text-gray-400">${formatTime(entryDate)}</span>
+              </div>
+            </div>
+          `;
+          
+          entryElement.addEventListener('click', () => {
+            localStorage.setItem('editingEntryId', entry.id_entri);
+            window.location.href = './journal-editor.html';
+          });
+          
+          entriesContainer.appendChild(entryElement);
+        });
+        
+      } catch (error) {
+        console.error('Error loading entries:', error);
+        document.getElementById('empty-state').innerHTML = `
+          <p class="text-lg mb-2 text-red-500">Error loading entries. Please try again.</p>
+          <button onclick="location.reload()" class="text-[#2E619F] underline">Retry</button>
+        `;
+        document.getElementById('empty-state').classList.remove('hidden');
+      } finally {
+        document.getElementById('loading-state').classList.add('hidden');
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load entries
+      loadJournalEntries();
+      
+      // Setup dropdown toggle
+      document.getElementById('avatar-button').addEventListener('click', function(e) {
         e.stopPropagation();
         document.getElementById('avatar-dropdown').classList.toggle('hidden');
-    });
-
-    // Close dropdown outside
-    document.addEventListener('click', function() {
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', () => {
         document.getElementById('avatar-dropdown').classList.add('hidden');
-    });
-
-    // Mobile menu toggle
-    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+      });
+      
+      // Mobile menu toggle
+      document.getElementById('mobile-menu-button').addEventListener('click', () => {
         document.getElementById('mobile-menu').classList.toggle('hidden');
-    });
-
-    // Function to format time from date
-    function formatTime(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-        });
-    }
-
-    // Function to extract clean text content from HTML or plain text
-    function extractTextContent(content) {
-        if (!content || content.trim() === '') {
-            return '';
+      });
+      
+      // Logout functionality
+      const logout = async () => {
+        try {
+          const { error } = await client.auth.signOut();
+          if (error) throw error;
+          window.location.href = 'login.html';
+        } catch (error) {
+          console.error('Logout error:', error);
+          alert('Logout failed. Please try again.');
         }
-
-        let textContent = '';
-        
-        // If content contains HTML tags, extract text content while preserving structure
-        if (content.includes('<')) {
-            // First convert HTML line breaks to actual line breaks
-            let htmlContent = content
-                .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<\/p>/gi, '\n')
-                .replace(/<\/div>/gi, '\n')
-                .replace(/<\/h[1-6]>/gi, '\n');
-            
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlContent;
-            textContent = tempDiv.textContent || tempDiv.innerText || '';
-        } else {
-            textContent = content;
-        }
-        
-        // Clean up excessive whitespace but preserve line breaks
-        textContent = textContent
-            .replace(/[ \t]+/g, ' ')  // Replace multiple spaces/tabs with single space
-            .replace(/\n\s+/g, '\n')  // Remove spaces after line breaks
-            .replace(/\s+\n/g, '\n')  // Remove spaces before line breaks
-            .trim();
-        
-        return textContent;
-    }
-
-    // Function to split content into title and description
-    function parseContentForDisplay(content) {
-        const textContent = extractTextContent(content);
-        
-        if (!textContent) {
-            return {
-                title: 'Untitled Entry',
-                description: ''
-            };
-        }
-
-        // First, try splitting by line breaks (paragraphs)
-        // Handle multiple types of line breaks
-        let paragraphs = textContent
-            .split(/\n+/)  // Split on one or more line breaks
-            .map(p => p.trim())  // Trim each paragraph
-            .filter(p => p.length > 0);  // Remove empty paragraphs
-        
-        console.log('Paragraphs found:', paragraphs);  // Debug log
-        
-        if (paragraphs.length > 1) {
-            // Use first paragraph as title
-            let title = paragraphs[0];
-            
-            // Limit title length
-            if (title.length > 60) {
-                title = title.substring(0, 60) + '...';
-            }
-            
-            // Use remaining paragraphs as description
-            let description = paragraphs.slice(1).join(' ').trim();
-            
-            // Limit description length
-            if (description.length > 120) {
-                description = description.substring(0, 120) + '...';
-            }
-            
-            return {
-                title: title || 'Untitled Entry',
-                description: description
-            };
-        }
-
-        // If no line breaks, split by sentence punctuation
-        let sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
-        
-        // If no sentence breaks, try splitting by length for very long single sentences
-        if (sentences.length === 1 && textContent.length > 60) {
-            // Find a good break point (space near the middle)
-            const midPoint = Math.min(60, textContent.length / 2);
-            const spaceIndex = textContent.indexOf(' ', midPoint);
-            
-            if (spaceIndex > 0 && spaceIndex < textContent.length - 10) {
-                const title = textContent.substring(0, spaceIndex).trim();
-                const description = textContent.substring(spaceIndex).trim();
-                
-                return {
-                    title: title || 'Untitled Entry',
-                    description: description.length > 120 ? description.substring(0, 120) + '...' : description
-                };
-            }
-        }
-
-        // Use first sentence as title
-        let title = sentences[0] ? sentences[0].trim() : textContent;
-        
-        // Limit title length
-        if (title.length > 60) {
-            title = title.substring(0, 60) + '...';
-        }
-
-        // Use remaining sentences as description
-        let description = '';
-        if (sentences.length > 1) {
-            description = sentences.slice(1).join('. ').trim();
-            if (description && !description.endsWith('.') && !description.endsWith('!') && !description.endsWith('?')) {
-                description += '.';
-            }
-        }
-
-        // Limit description length
-        if (description.length > 120) {
-            description = description.substring(0, 120) + '...';
-        }
-
-        return {
-            title: title || 'Untitled Entry',
-            description: description
-        };
-    }
-
-    // Load and display journal entries
-    document.addEventListener('DOMContentLoaded', function() {
-        const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
-        const entriesList = document.getElementById('journal-entries');
-        const emptyState = document.getElementById('empty-state');
-
-        if (Object.keys(allEntries).length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
-        }
-
-        // Sort entries by date (newest first)
-        const sortedEntries = Object.values(allEntries).sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
-        });
-
-        sortedEntries.forEach(entry => {
-            const entryElement = document.createElement('div');
-            entryElement.className = 'journal-card border-b border-[#2E619F] px-4 py-5 hover:bg-gray-50 transition-colors cursor-pointer';
-            
-            // Parse content into title and description
-            const { title, description } = parseContentForDisplay(entry.content);
-
-            // Format timestamp
-            const timestamp = formatTime(entry.date);
-            
-            entryElement.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">${title}</h3>
-                        ${description ? `<p class="text-gray-600 leading-relaxed">${description}</p>` : ''}
-                    </div>
-                    <div class="ml-4 flex-shrink-0">
-                        <span class="text-sm text-gray-400">${timestamp}</span>
-                    </div>
-                </div>
-            `;
-            
-            // Add click handler to navigate to editor with entry
-            entryElement.addEventListener('click', function() {
-                // Store the selected entry for editing
-                localStorage.setItem('editingEntry', JSON.stringify(entry));
-                window.location.href = './journal-editor.html';
-            });
-            
-            entriesList.appendChild(entryElement);
-        });
-
-        emptyState.classList.add('hidden');
+      };
+      
+      document.getElementById('logout-btn')?.addEventListener('click', logout);
+      document.getElementById('mobile-logout-btn')?.addEventListener('click', logout);
     });
   </script>
 </body>

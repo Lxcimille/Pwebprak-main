@@ -6,10 +6,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
+    }
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 3px solid white;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
   <title>Login Page</title>
@@ -22,6 +37,10 @@
     <div class="w-full md:w-1/2 p-8">
       <h2 class="text-2xl font-bold text-[#2E619F] mb-4">Hello, User!</h2>
       <p class="text-gray-600 mb-6">Login to save your data across all devices!</p>
+      
+      <!-- Status message -->
+      <div id="statusMessage" class="mb-4 py-2 px-4 rounded-lg hidden"></div>
+      
       <button class="w-full flex items-center justify-center border border-[#2E619F] rounded-lg py-2 mb-4">
         <i class="fab fa-google text-red-500 mr-2"></i> Login with Google
       </button>
@@ -46,49 +65,119 @@
         <div class="flex items-center justify-between mb-6">
           <a class="text-[#2E619F]" href="#">Lupa Password?</a>
         </div>
-        <button type="submit" class="w-full bg-[#2E619F] text-white rounded-lg py-2">Login</button>
+        <button id="loginButton" type="submit" class="w-full bg-[#2E619F] text-white rounded-lg py-2 flex items-center justify-center">
+          <span>Login</span>
+        </button>
       </form>
 
       <p class="text-center text-gray-600 mt-4">
-        Kamu belum punya akun?
-        <a class="text-[#2E619F]" href="register.html">Daftar Disini</a>
+        Don't have an account yet?
+        <a class="text-[#2E619F]" href="register.html">Register Here.</a>
       </p>
     </div>
   </div>
 
   <script>
-    const supabase = supabase.createClient(
-      'https://your-project-id.supabase.co', // ← Replace this
-      'your-anon-key'                        // ← Replace this
-    );
+    // Initialize Supabase client
+    const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const form = document.getElementById("loginForm");
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
+    // Function to show status message
+    function showMessage(message, isError = false) {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.textContent = message;
+      statusDiv.className = `mb-4 py-2 px-4 rounded-lg ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+      statusDiv.classList.remove('hidden');
+    }
 
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    // Function to show loading state
+    function setLoading(isLoading) {
+      const button = document.getElementById('loginButton');
+      if (isLoading) {
+        button.innerHTML = '<div class="spinner"></div> <span>Logging in...</span>';
+        button.disabled = true;
+        button.classList.add('opacity-75');
+      } else {
+        button.innerHTML = '<span>Login</span>';
+        button.disabled = false;
+        button.classList.remove('opacity-75');
+      }
+    }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
+    // Login form handler
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    setLoading(true);
+    
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+
+    try {
+      // Debugging: Check both tables before login
+      console.log(`Attempting login with: ${email}`);
+      
+      const { data: authCheck } = await client
+        .from('auth.users')
+        .select('email, created_at')
+        .ilike('email', email);
+      
+      const { data: publicCheck } = await client
+        .from('users')
+        .select('email, created_at')
+        .ilike('email', email);
+
+      console.log('Auth table results:', authCheck);
+      console.log('Public table results:', publicCheck);
+
+      // 1. Attempt authentication
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({
+        email,
+        password
       });
 
-      if (error) {
-        alert("Login failed: " + error.message);
-        return;
+      if (authError) {
+        console.error('Auth error details:', authError);
+        throw authError;
       }
 
-      // Optional: store session info if needed
-      const user = data.user;
-
-      // Redirect based on email domain
-      if (user.email.endsWith('@gws.com')) {
-        window.location.href = "dashboardadmin.html";
-      } else {
-        window.location.href = "landingpageuser.html";
+      // 2. Verify successful authentication
+      if (!authData || !authData.user) {
+        throw new Error('Authentication failed - no user data returned');
       }
-    });
+
+      // 3. Check email confirmation status
+      if (!authData.user.email_confirmed_at) {
+        await client.auth.signOut();
+        throw new Error('Please verify your email first. Check your inbox.');
+      }
+
+      showMessage('Login successful! Redirecting...');
+      
+      // Redirect with case-insensitive domain check
+      setTimeout(() => {
+        window.location.href = email.endsWith('@gws.com') 
+          ? "dashboardadmin.html" 
+          : "landingpageuser.html";
+      }, 1500);
+
+    } catch (error) {
+      console.error("Full error object:", error);
+      
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Incorrect email or password.';
+      } else if (error.message.includes('verify your email')) {
+        errorMessage = error.message;
+      } else if (error.message.includes('Email rate limit exceeded')) {
+        errorMessage = 'Too many attempts. Please wait before trying again.';
+      }
+      
+      showMessage(errorMessage, true);
+      setLoading(false);
+    }
+  });
   </script>
 </body>
 </html>

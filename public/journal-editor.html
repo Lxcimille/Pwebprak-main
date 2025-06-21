@@ -7,421 +7,63 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Poppins, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f5f5;
-        }
-        
-        .main-content {
-            max-width: 1100px;
-            margin: 20px auto;
-            background-color: white;
-            min-height: 600px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 20px;
-            background-color: #2E619F;
-            color: white;
-            border-radius: 4px 4px 0 0;
-        }
-        
-        .date {
-            font-size: 1.1rem;
-            flex: 1;
-            margin-right: 30px;
-        }
-        
-        .formatting-tools {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .formatting-tools button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: opacity 0.2s;
-        }
-        
-        .formatting-tools button:hover {
-            opacity: 0.8;
-        }
-        
-        .formatting-tools button.active {
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-        }
-        
-        .editor {
-            padding: 20px;
-            min-height: 400px;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            line-height: 1.6;
-            color: #333;
-            resize: none;
-            width: 100%;
-            font-family: Poppins, sans-serif;
-            position: relative;
-        }
-        
-        .editor-container {
-            position: relative;
-        }
-        
-        .date-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .date-button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .date-button:hover {
-            opacity: 0.8;
-        }
-        
-        .calendar-dropdown {
-            display: none;
-            position: absolute;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1000;
-            top: 100%;
-            left: 0;
-            min-width: 280px;
-            padding: 15px;
-            color: #333;
-        }
-        
-        .calendar-dropdown.show {
-            display: block;
-        }
-        
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .calendar-nav {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .calendar-nav:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center;
-        }
-        
-        .calendar-day {
-            padding: 8px 4px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .calendar-day:hover {
-            background-color: #e3f2fd;
-        }
-        
-        .calendar-day.today {
-            background-color: #2E619F;
-            color: white;
-        }
-        
-        .calendar-day.other-month {
-            color: #ccc;
-        }
-        
-        .calendar-weekday {
-            font-weight: bold;
-            color: #666;
-            padding: 8px 4px;
-            font-size: 12px;
-        }
-        
-        .placeholder-overlay {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #aaa;
-            pointer-events: none;
-            font-style: italic;
-        }
-
-        /* Custom Modal Styles */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal-overlay.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            animation: modalSlideIn 0.3s ease-out;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .modal-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #2E619F;
-            margin: 0;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-            background-color: #f0f0f0;
-            color: #666;
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 14px;
-        }
-
-        .modal-btn-primary {
-            background-color: #2E619F;
-            color: white;
-        }
-
-        .modal-btn-primary:hover {
-            background-color: #1e4a7f;
-        }
-
-        .modal-btn-secondary {
-            background-color: #f0f0f0;
-            color: #666;
-        }
-
-        .modal-btn-secondary:hover {
-            background-color: #e0e0e0;
-        }
-
-        .font-size-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .font-size-btn {
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .font-size-btn:hover {
-            border-color: #2E619F;
-            background-color: #f8f9ff;
-        }
-
-        .more-options-grid {
-            display: grid;
-            grid-template-columns: repeat(1, 1fr);
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .more-option-btn {
-            padding: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .more-option-btn:hover {
-            border-color: #2E619F;
-            background-color: #f8f9ff;
-        }
-
-        .more-option-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #2E619F;
-            color: white;
-            border-radius: 6px;
-            font-size: 12px;
-        }
-
-        .more-option-text {
-            flex: 1;
-        }
-
-        .more-option-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-        }
-
-        .more-option-desc {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        .input-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #2E619F;
-        }
-        
-        @media (max-width: 768px) {
-            .formatting-tools {
-                gap: 15px;
-            }
-            
-            .formatting-tools button {
-                font-size: 0.9rem;
-            }
-            
-            .main-content {
-                margin: 10px;
-            }
-            
-            .toolbar {
-                padding: 12px 15px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Poppins, sans-serif; }
+        body { background-color: #f5f5f5; }
+        .main-content { max-width: 1100px; margin: 20px auto; background: white; min-height: 600px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); overflow: hidden; }
+        .toolbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: #2E619F; color: white; border-radius: 4px 4px 0 0; }
+        .date { font-size: 1.1rem; flex: 1; margin-right: 30px; }
+        .formatting-tools { display: flex; gap: 15px; }
+        .formatting-tools button { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
+        .formatting-tools button:hover { opacity: 0.8; }
+        .formatting-tools button.active { text-shadow: 0 0 5px rgba(255, 255, 255, 0.8); }
+        .editor { padding: 20px; min-height: 400px; outline: none; font-size: 16px; line-height: 1.6; color: #333; width: 100%; font-family: Poppins; }
+        .placeholder-overlay { position: absolute; top: 20px; left: 20px; color: #aaa; pointer-events: none; font-style: italic; }
+        .date-dropdown, .modal-overlay { position: relative; }
+        .calendar-dropdown { display: none; position: absolute; background: white; border-radius: 8px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1000; top: 100%; left: 0; min-width: 280px; padding: 15px; color: #333; }
+        .calendar-dropdown.show { display: block; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .calendar-day { padding: 8px 4px; cursor: pointer; border-radius: 4px; font-size: 14px; }
+        .calendar-day:hover { background: #e3f2fd; }
+        .calendar-day.today { background: #2E619F; color: white; }
+        .calendar-day.other-month { color: #ccc; }
+        .calendar-weekday { font-weight: bold; color: #666; padding: 8px 4px; font-size: 12px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; backdrop-filter: blur(3px); align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); animation: modalSlideIn 0.3s ease-out; }
+        @keyframes modalSlideIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f0f0; }
+        .modal-title { font-size: 1.2em; font-weight: 600; color: #2E619F; margin: 0; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; }
+        .modal-close:hover { background: #f0f0f0; color: #666; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; font-size: 14px; }
+        .modal-btn-primary { background: #2E619F; color: white; }
+        .modal-btn-primary:hover { background: #1e4a7f; }
+        .modal-btn-secondary { background: #f0f0f0; color: #666; }
+        .modal-btn-secondary:hover { background: #e0e0e0; }
+        .font-size-options, .more-options-grid { display: grid; gap: 12px; margin-top: 16px; }
+        .font-size-options { grid-template-columns: repeat(2, 1fr); }
+        .more-options-grid { grid-template-columns: 1fr; }
+        .font-size-btn, .more-option-btn { padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s; }
+        .font-size-btn:hover, .more-option-btn:hover { border-color: #2E619F; background: #f8f9ff; }
+        .more-option-btn { text-align: left; display: flex; align-items: center; gap: 12px; }
+        .more-option-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #2E619F; color: white; border-radius: 6px; font-size: 12px; }
+        .status-message { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; z-index: 2000; transform: translateX(400px); transition: transform 0.3s ease-out; }
+        .status-message.show { transform: translateX(0); }
+        .status-message.success { background: #10b981; }
+        .status-message.error { background: #ef4444; }
+        .status-message.info { background: #3b82f6; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) { .formatting-tools { gap: 10px; } .main-content { margin: 10px; } .toolbar { padding: 12px 15px; } }
     </style>
 </head>
 <body>
-    <!-- Navigation bar using Tailwind CSS from the provided code -->
+    <div id="status-message" class="status-message"></div>
+
     <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center">
@@ -429,31 +71,23 @@
             </div>
             <div class="hidden md:flex space-x-6 items-center">
                 <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-                <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
                 <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
                 <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
-                
-                <!-- Avatar with Dropdown -->
                 <div class="relative group flex items-center space-x-1">
                     <button id="avatar-button" class="focus:outline-none">
                         <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
                     </button>
                     <span id="username" class="text-white font-bold">Lucille</span>
-                    
-                    <!-- Dropdown Menu -->
                     <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
                         <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
                         <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
                     </div>
                 </div>
             </div>
-            <button class="md:hidden text-2xl" id="mobile-menu-button">
-                <i class="fas fa-bars"></i>
-            </button>
+            <button class="md:hidden text-2xl" id="mobile-menu-button"><i class="fas fa-bars"></i></button>
         </div>
-    
-        <!-- Mobile Menu -->
         <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
             <div class="container mx-auto py-4 flex flex-col space-y-4">
                 <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
@@ -465,120 +99,91 @@
         </div>
     </nav>
     
-    <!-- Main journal content area -->
     <div class="main-content">
         <div class="toolbar">
             <div class="date-dropdown">
-                <button class="date-button" id="date-button" onclick="toggleCalendar()">
+                <button class="date-button" id="date-button">
                     <span id="current-date">Today</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="calendar-dropdown" id="calendar-dropdown">
                     <div class="calendar-header">
-                        <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+                        <button class="calendar-nav" id="prev-month">‹</button>
                         <span id="calendar-month-year"></span>
-                        <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+                        <button class="calendar-nav" id="next-month">›</button>
                     </div>
                     <div class="calendar-grid" id="calendar-grid"></div>
                 </div>
             </div>
             <div class="formatting-tools">
-                <button title="Bold" onclick="formatText('bold')" id="bold-btn"><i class="fas fa-bold"></i></button>
-                <button title="Italic" onclick="formatText('italic')" id="italic-btn"><i class="fas fa-italic"></i></button>
-                <button title="Underline" onclick="formatText('underline')" id="underline-btn"><i class="fas fa-underline"></i></button>
-                <button title="Text format" onclick="showFontMenu()" id="font-btn"><i class="fas fa-font"></i></button>
-                <button title="Align Left" onclick="formatText('justifyLeft')" id="left-btn"><i class="fas fa-align-left"></i></button>
-                <button title="Align Center" onclick="formatText('justifyCenter')" id="center-btn"><i class="fas fa-align-center"></i></button>
-                <button title="Bullet List" onclick="formatText('insertUnorderedList')" id="ul-btn"><i class="fas fa-list-ul"></i></button>
-                <button title="Numbered List" onclick="formatText('insertOrderedList')" id="ol-btn"><i class="fas fa-list-ol"></i></button>
-                <button title="Link" onclick="insertLink()" id="link-btn"><i class="fas fa-link"></i></button>
-                <button title="Image" onclick="insertImageFromFile()" id="image-btn"><i class="far fa-image"></i></button>
-                <button title="Emoji" onclick="insertEmoji()" id="emoji-btn"><i class="far fa-smile"></i></button>
-                <button title="Journal Log" onclick="goToJournalLog()" id="journal-log-btn"><i class="fas fa-book"></i></button>
-                <button title="More options" onclick="showMoreOptions()" id="more-btn"><i class="fas fa-ellipsis-v"></i></button>
+                <button title="Bold" id="bold-btn"><i class="fas fa-bold"></i></button>
+                <button title="Italic" id="italic-btn"><i class="fas fa-italic"></i></button>
+                <button title="Underline" id="underline-btn"><i class="fas fa-underline"></i></button>
+                <button title="Text format" id="font-btn"><i class="fas fa-font"></i></button>
+                <button title="Align Left" id="left-btn"><i class="fas fa-align-left"></i></button>
+                <button title="Align Center" id="center-btn"><i class="fas fa-align-center"></i></button>
+                <button title="Bullet List" id="ul-btn"><i class="fas fa-list-ul"></i></button>
+                <button title="Numbered List" id="ol-btn"><i class="fas fa-list-ol"></i></button>
+                <button title="Link" id="link-btn"><i class="fas fa-link"></i></button>
+                <button title="Image" id="image-btn"><i class="far fa-image"></i></button>
+                <button title="Emoji" id="emoji-btn"><i class="far fa-smile"></i></button>
+                <a href="journal.html">
+                <button title="Journal Log" id="journal-log-btn"><i class="fas fa-book"></i></button>
+                </a>
+                <button title="More options" id="more-btn"><i class="fas fa-ellipsis-v"></i></button>
             </div>
         </div>
         
-        <div class="editor-container">
-            <div class="editor" 
-                 contenteditable="true" 
-                 id="journal-editor"
-                 onkeyup="updateToolbarState(); togglePlaceholder()"
-                 onmouseup="updateToolbarState()"
-                 onfocus="togglePlaceholder()"
-                 onblur="togglePlaceholder()">
-            </div>
-            <div class="placeholder-overlay" id="placeholder-text">
-                Start writing your journal entry...
-            </div>
+        <div class="editor-container relative">
+            <div class="editor" contenteditable="true" id="journal-editor"></div>
+            <div class="placeholder-overlay" id="placeholder-text">Start writing your journal entry...</div>
         </div>
         
-        <!-- Hidden file input for image upload -->
-        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+        <input type="file" id="image-upload" accept="image/*" class="hidden">
     </div>
 
-    <!-- Custom Modals -->
-    <!-- Font Size Modal -->
+    <!-- Modals -->
     <div class="modal-overlay" id="font-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Choose Font Size</h3>
-                <button class="modal-close" onclick="closeModal('font-modal')">&times;</button>
+                <button class="modal-close" data-modal="font-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="font-size-options">
-                    <button class="font-size-btn" onclick="applyFontSize('12px')">
-                        <div style="font-size: 12px;">Small Text</div>
-                        <small>12px</small>
-                    </button>
-                    <button class="font-size-btn" onclick="applyFontSize('16px')">
-                        <div style="font-size: 16px;">Normal Text</div>
-                        <small>16px</small>
-                    </button>
-                    <button class="font-size-btn" onclick="applyFontSize('20px')">
-                        <div style="font-size: 20px;">Large Text</div>
-                        <small>20px</small>
-                    </button>
-                    <button class="font-size-btn" onclick="applyFontSize('24px')">
-                        <div style="font-size: 24px;">X-Large Text</div>
-                        <small>24px</small>
-                    </button>
+                    <button class="font-size-btn" data-size="12px"><div style="font-size:12px">Small Text</div><small>12px</small></button>
+                    <button class="font-size-btn" data-size="16px"><div style="font-size:16px">Normal Text</div><small>16px</small></button>
+                    <button class="font-size-btn" data-size="20px"><div style="font-size:20px">Large Text</div><small>20px</small></button>
+                    <button class="font-size-btn" data-size="24px"><div style="font-size:24px">X-Large Text</div><small>24px</small></button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- More Options Modal -->
     <div class="modal-overlay" id="more-options-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">More Options</h3>
-                <button class="modal-close" onclick="closeModal('more-options-modal')">&times;</button>
+                <button class="modal-close" data-modal="more-options-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="more-options-grid">
-                    <button class="more-option-btn" onclick="formatText('removeFormat'); closeModal('more-options-modal')">
-                        <div class="more-option-icon">
-                            <i class="fas fa-eraser"></i>
-                        </div>
+                    <button class="more-option-btn" data-action="removeFormat">
+                        <div class="more-option-icon"><i class="fas fa-eraser"></i></div>
                         <div class="more-option-text">
                             <div class="more-option-title">Clear Format</div>
                             <div class="more-option-desc">Remove all formatting from selected text</div>
                         </div>
                     </button>
-                    <button class="more-option-btn" onclick="saveEntry(); closeModal('more-options-modal')">
-                        <div class="more-option-icon">
-                            <i class="fas fa-save"></i>
-                        </div>
+                    <button class="more-option-btn" data-action="save">
+                        <div class="more-option-icon"><i class="fas fa-save"></i></div>
                         <div class="more-option-text">
                             <div class="more-option-title">Save Entry</div>
-                            <div class="more-option-desc">Save your journal entry to local storage</div>
+                            <div class="more-option-desc">Save your journal entry to database</div>
                         </div>
                     </button>
-                    <button class="more-option-btn" onclick="showClearConfirmation()">
-                        <div class="more-option-icon">
-                            <i class="fas fa-trash"></i>
-                        </div>
+                    <button class="more-option-btn" data-action="clear">
+                        <div class="more-option-icon"><i class="fas fa-trash"></i></div>
                         <div class="more-option-text">
                             <div class="more-option-title">Clear All</div>
                             <div class="more-option-desc">Remove all content from the editor</div>
@@ -589,12 +194,11 @@
         </div>
     </div>
 
-    <!-- Link Modal -->
     <div class="modal-overlay" id="link-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Insert Link</h3>
-                <button class="modal-close" onclick="closeModal('link-modal')">&times;</button>
+                <button class="modal-close" data-modal="link-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="input-group">
@@ -607,418 +211,583 @@
                 </div>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-secondary" onclick="closeModal('link-modal')">Cancel</button>
-                <button class="modal-btn modal-btn-primary" onclick="applyLink()">Insert Link</button>
+                <button class="modal-btn modal-btn-secondary" data-modal="link-modal">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="insert-link-btn">Insert Link</button>
             </div>
         </div>
     </div>
 
-    <!-- Clear Confirmation Modal -->
     <div class="modal-overlay" id="clear-confirmation-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Clear All Content</h3>
-                <button class="modal-close" onclick="closeModal('clear-confirmation-modal')">&times;</button>
+                <button class="modal-close" data-modal="clear-confirmation-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to clear all content? This action cannot be undone.</p>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn modal-btn-secondary" onclick="closeModal('clear-confirmation-modal')">Cancel</button>
-                <button class="modal-btn modal-btn-primary" onclick="confirmClearEditor()">Clear All</button>
+                <button class="modal-btn modal-btn-secondary" data-modal="clear-confirmation-modal">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="confirm-clear-btn">Clear All</button>
             </div>
         </div>
     </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Supabase
+    const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-    <script>
-        // Calendar functionality
-        let currentCalendarDate = new Date();
-        let selectedDate = new Date();
-        
-        function setCurrentDate() {
-            const options = { 
-                weekday: 'long', 
-                month: 'long', 
-                day: 'numeric',
-                year: 'numeric'
+    // State management
+    const state = {
+        currentUser: null,
+        currentEntry: {
+            id_entri: null,
+            judul_journal: '',
+            teks_journal: '',
+            tanggal_journal: new Date().toISOString().split('T')[0],
+            gambar_url: null
+        },
+        hasUnsavedChanges: false
+    };
+
+    // DOM elements
+    const editor = document.getElementById('journal-editor');
+    const placeholder = document.getElementById('placeholder-text');
+    const currentDateDisplay = document.getElementById('current-date');
+    const dateButton = document.getElementById('date-button');
+    const calendarDropdown = document.getElementById('calendar-dropdown');
+    const calendarMonthYear = document.getElementById('calendar-month-year');
+    const calendarGrid = document.getElementById('calendar-grid');
+    const prevMonthBtn = document.getElementById('prev-month');
+    const nextMonthBtn = document.getElementById('next-month');
+
+    // Date variables
+    let currentDate = new Date();
+    let selectedDate = new Date();
+
+    // Initialize the editor
+    async function initEditor() {
+        try {
+            // Set initial date display
+            updateDateDisplay();
+            renderCalendar();
+
+            editor.style.wordWrap = 'break-word';
+            editor.style.overflowWrap = 'break-word';
+
+            // Check auth state
+            await checkAuthState();
+            
+            // Check for existing entry to edit
+            const editingEntryId = localStorage.getItem('editingEntryId');
+            if (editingEntryId) {
+                await loadEntry(editingEntryId);
+                localStorage.removeItem('editingEntryId');
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+        } catch (error) {
+            console.error('Initialization error:', error);
+            showStatus('Failed to initialize editor', 'error');
+        }
+    }
+
+    // Check authentication state
+    async function checkAuthState() {
+        const { data: { user }, error } = await client.auth.getUser();
+        if (error || !user) {
+            showStatus('Please log in to save entries', 'error');
+            return;
+        }
+        state.currentUser = user;
+    }
+
+    // Load an existing entry
+    async function loadEntry(entryId) {
+        try {
+            const { data: entry, error } = await client
+                .from('entry_journal')
+                .select('*')
+                .eq('id_entri', entryId)
+                .single();
+            
+            if (error) throw error;
+            if (!entry) throw new Error('Entry not found');
+            
+            state.currentEntry = entry;
+            editor.innerHTML = entry.teks_journal || '';
+            
+            // Update date
+            if (entry.tanggal_journal) {
+                selectedDate = new Date(entry.tanggal_journal);
+                currentDate = new Date(entry.tanggal_journal);
+                updateDateDisplay();
+                renderCalendar();
+            }
+            
+            togglePlaceholder();
+            
+        } catch (error) {
+            console.error('Error loading entry:', error);
+            showStatus('Failed to load entry', 'error');
+        }
+    }
+
+    // Save the current entry
+    async function saveEntry() {
+        try {
+            if (!state.currentUser) {
+                showStatus('Please log in to save entries', 'error');
+                return;
+            }
+            
+            const content = editor.innerHTML.trim();
+            if (!content) {
+                showStatus('Cannot save empty entry', 'warning');
+                return;
+            }
+            
+            // Prepare entry data
+            const entryData = {
+                user_id: state.currentUser.id,
+                judul_journal: `Journal Entry - ${selectedDate.toLocaleDateString()}`,
+                teks_journal: content,
+                tanggal_journal: selectedDate.toISOString().split('T')[0]
             };
-            document.getElementById('current-date').textContent = selectedDate.toLocaleDateString('en-US', options);
-        }
-
-        function toggleCalendar() {
-            const dropdown = document.getElementById('calendar-dropdown');
-            if (dropdown.classList.contains('show')) {
-                dropdown.classList.remove('show');
+            
+            let result;
+            if (state.currentEntry.id_entri) {
+                // Update existing entry
+                result = await client
+                    .from('entry_journal')
+                    .update(entryData)
+                    .eq('id_entri', state.currentEntry.id_entri)
+                    .select();
             } else {
-                dropdown.classList.add('show');
-                updateCalendar();
+                // Create new entry
+                result = await client
+                    .from('entry_journal')
+                    .insert([entryData])
+                    .select();
             }
+            
+            if (result.error) throw result.error;
+            
+            showStatus('Entry saved successfully', 'success');
+            state.hasUnsavedChanges = false;
+            
+            // Update current entry ID if it's a new entry
+            if (result.data?.[0]?.id_entri) {
+                state.currentEntry.id_entri = result.data[0].id_entri;
+            }
+            
+        } catch (error) {
+            console.error('Error saving entry:', error);
+            showStatus('Failed to save entry', 'error');
+        }
+    }
+
+    // Calendar functions
+    function renderCalendar() {
+        calendarMonthYear.textContent = currentDate.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
+        });
+
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startDay = firstDay.getDay();
+
+        // Clear previous calendar
+        calendarGrid.innerHTML = '';
+
+        // Add weekday headers
+        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        weekdays.forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-weekday';
+            dayElement.textContent = day;
+            calendarGrid.appendChild(dayElement);
+        });
+
+        // Add days from previous month
+        const prevMonthLastDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+        for (let i = startDay - 1; i >= 0; i--) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day other-month';
+            dayElement.textContent = prevMonthLastDay - i;
+            calendarGrid.appendChild(dayElement);
         }
 
-        function updateCalendar() {
-            const monthYear = document.getElementById('calendar-month-year');
-            const grid = document.getElementById('calendar-grid');
-            
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            
-            monthYear.textContent = new Date(year, month).toLocaleDateString('en-US', { 
-                month: 'long', 
-                year: 'numeric' 
-            });
-            
-            // Clear grid
-            grid.innerHTML = '';
-            
-            // Add weekday headers
-            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            weekdays.forEach(day => {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-weekday';
-                dayElement.textContent = day;
-                grid.appendChild(dayElement);
-            });
-            
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            
-            // Add previous month's trailing days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day other-month';
-                dayElement.textContent = daysInPrevMonth - i;
-                grid.appendChild(dayElement);
-            }
-            
-            // Add current month's days
+        // Add current month days
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            dayElement.textContent = i;
+
+            // Highlight today
             const today = new Date();
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
-                dayElement.textContent = day;
-                
-                const dayDate = new Date(year, month, day);
-                if (dayDate.toDateString() === today.toDateString()) {
-                    dayElement.classList.add('today');
-                }
-                
-                dayElement.onclick = () => selectDate(new Date(year, month, day));
-                grid.appendChild(dayElement);
+            if (currentDate.getFullYear() === today.getFullYear() && 
+                currentDate.getMonth() === today.getMonth() && 
+                i === today.getDate()) {
+                dayElement.classList.add('today');
+            }
+
+            // Highlight selected date
+            if (currentDate.getFullYear() === selectedDate.getFullYear() && 
+                currentDate.getMonth() === selectedDate.getMonth() && 
+                i === selectedDate.getDate()) {
+                dayElement.classList.add('selected');
+            }
+
+            dayElement.addEventListener('click', () => {
+                selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+                updateDateDisplay();
+                calendarDropdown.classList.remove('show');
+                renderCalendar();
+            });
+
+            calendarGrid.appendChild(dayElement);
+        }
+
+        // Add days from next month
+        const totalCells = startDay + daysInMonth > 35 ? 42 : 35;
+        const remainingCells = totalCells - (startDay + daysInMonth);
+        for (let i = 1; i <= remainingCells; i++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day other-month';
+            dayElement.textContent = i;
+            calendarGrid.appendChild(dayElement);
+        }
+    }
+
+    function updateDateDisplay() {
+        currentDateDisplay.textContent = selectedDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    // Helper functions
+    function togglePlaceholder() {
+        placeholder.style.display = editor.textContent.trim() === '' ? 'block' : 'none';
+    }
+    
+    function showStatus(message, type = 'info', duration = 3000) {
+        const statusElement = document.getElementById('status-message');
+        if (!statusElement) return;
+        
+        statusElement.textContent = message;
+        statusElement.className = `status-message ${type} show`;
+        
+        setTimeout(() => {
+            statusElement.classList.remove('show');
+        }, duration);
+    }
+
+    // Update toolbar button states based on current selection
+    function updateToolbarState() {
+        const buttons = ['bold', 'italic', 'underline'];
+        buttons.forEach(style => {
+            const btn = document.getElementById(`${style}-btn`);
+            if (btn) {
+                btn.classList.toggle('active', document.queryCommandState(style));
+            }
+        });
+
+        // Update alignment buttons
+        const alignments = ['left', 'center', 'right', 'justify'];
+        alignments.forEach(align => {
+            const btn = document.getElementById(`${align}-btn`);
+            if (btn) {
+                btn.classList.toggle('active', document.queryCommandValue('justify') === align);
+            }
+        });
+    }
+
+    // Verify bucket access
+    async function verifyBucketAccess() {
+        try {
+            const { data: buckets, error } = await client.storage.listBuckets();
+            
+            if (error) {
+                console.error('Bucket list error:', error);
+                showStatus('Failed to access storage', 'error');
+                return false;
             }
             
-            // Add next month's leading days
-            const totalCells = grid.children.length;
-            const remainingCells = 42 - totalCells; // 6 rows × 7 days
-            for (let day = 1; day <= remainingCells && day <= 14; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day other-month';
-                dayElement.textContent = day;
-                grid.appendChild(dayElement);
+            console.log('Available buckets:', buckets);
+            const imageBucketExists = buckets.some(b => b.name === 'image');
+            console.log('Image bucket exists:', imageBucketExists);
+            
+            if (!imageBucketExists) {
+                showStatus('Image bucket not found in list', 'error');
             }
+            
+            return imageBucketExists;
+        } catch (err) {
+            console.error('Bucket verification failed:', err);
+            return false;
         }
+    }
 
-        function changeMonth(direction) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
-            updateCalendar();
-        }
+    function setupEventListeners() {
+        // Editor content changes
+        editor.addEventListener('input', () => {
+            togglePlaceholder();
+            state.hasUnsavedChanges = true;
+        });
 
-        function selectDate(date) {
-            selectedDate = date;
-            setCurrentDate();
-            toggleCalendar();
-            loadEntryForDate(date);
-        }
+        // Selection changes to update toolbar buttons
+        editor.addEventListener('mouseup', updateToolbarState);
+        editor.addEventListener('keyup', updateToolbarState);
+
+        // Formatting buttons
+        document.getElementById('bold-btn')?.addEventListener('click', () => document.execCommand('bold', false, null));
+        document.getElementById('italic-btn')?.addEventListener('click', () => document.execCommand('italic', false, null));
+        document.getElementById('underline-btn')?.addEventListener('click', () => document.execCommand('underline', false, null));
+        document.getElementById('left-btn')?.addEventListener('click', () => document.execCommand('justifyLeft', false, null));
+        document.getElementById('center-btn')?.addEventListener('click', () => document.execCommand('justifyCenter', false, null));
+        document.getElementById('ul-btn')?.addEventListener('click', () => document.execCommand('insertUnorderedList', false, null));
+        document.getElementById('ol-btn')?.addEventListener('click', () => document.execCommand('insertOrderedList', false, null));
+
+        // Date picker
+        dateButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            calendarDropdown.classList.toggle('show');
+        });
+
+        prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
 
         // Close calendar when clicking outside
-        document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('calendar-dropdown');
-            const button = document.getElementById('date-button');
-            
-            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
-                dropdown.classList.remove('show');
+        document.addEventListener('click', (e) => {
+            if (!calendarDropdown.contains(e.target) && e.target !== dateButton) {
+                calendarDropdown.classList.remove('show');
             }
         });
 
-        // Initialize date on page load
-        selectedDate = new Date(); // Set to today's date
-        setCurrentDate();
+        // Font size modal
+        document.getElementById('font-btn')?.addEventListener('click', () => {
+            document.getElementById('font-modal').classList.add('show');
+        });
+
+        // Font size options
+        document.querySelectorAll('.font-size-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const size = button.getAttribute('data-size');
+                document.execCommand('fontSize', false, '7'); // Reset first
+                document.execCommand('fontSize', false, '7'); // Chrome needs it twice
+                
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const span = document.createElement('span');
+                    span.style.fontSize = size;
+                    range.surroundContents(span);
+                }
+                
+                document.getElementById('font-modal').classList.remove('show');
+            });
+        });
+
+        // More options modal
+        document.getElementById('more-btn')?.addEventListener('click', () => {
+            document.getElementById('more-options-modal').classList.add('show');
+        });
+
+        // Save button in more options modal
+        document.querySelector('[data-action="save"]')?.addEventListener('click', () => {
+            document.getElementById('more-options-modal').classList.remove('show');
+            saveEntry();
+        });
         
-        // Mobile menu toggle functionality
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
+        // Clear button in more options modal
+        document.querySelector('[data-action="clear"]')?.addEventListener('click', () => {
+            document.getElementById('more-options-modal').classList.remove('show');
+            document.getElementById('clear-confirmation-modal').classList.add('show');
+        });
+        
+        // Confirm clear button
+        document.getElementById('confirm-clear-btn')?.addEventListener('click', () => {
+            editor.innerHTML = '';
+            togglePlaceholder();
+            state.hasUnsavedChanges = true;
+            document.getElementById('clear-confirmation-modal').classList.remove('show');
+        });
+        
+        // Before unload warning
+        window.addEventListener('beforeunload', (e) => {
+            if (state.hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                return e.returnValue;
+            }
         });
 
-        // Text formatting functions
-        function formatText(command, value = null) {
-            const editor = document.getElementById('journal-editor');
-            editor.focus();
-            
-            // Special handling for list commands
-            if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
-                document.execCommand(command, false, null);
-            } else {
-                document.execCommand(command, false, value);
-            }
-            
-            updateToolbarState();
-            togglePlaceholder();
-        }
-
-        // Placeholder functionality
-        function togglePlaceholder() {
-            const editor = document.getElementById('journal-editor');
-            const placeholder = document.getElementById('placeholder-text');
-            
-            if (editor.textContent.trim() === '' && editor.innerHTML.trim() === '') {
-                placeholder.style.display = 'block';
-            } else {
-                placeholder.style.display = 'none';
-            }
-        }
-
-        // Image upload functionality
-        function insertImageFromFile() {
-            document.getElementById('image-upload').click();
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.maxWidth = '100%';
-                    img.style.height = 'auto';
-                    img.style.margin = '10px 0';
-                    
-                    // Insert the image at cursor position
-                    const selection = window.getSelection();
-                    if (selection.rangeCount > 0) {
-                        const range = selection.getRangeAt(0);
-                        range.deleteContents();
-                        range.insertNode(img);
-                        range.setStartAfter(img);
-                        range.setEndAfter(img);
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                    } else {
-                        document.getElementById('journal-editor').appendChild(img);
-                    }
-                    
-                    togglePlaceholder();
-                };
-                reader.readAsDataURL(file);
-            }
-            
-            // Reset the input
-            event.target.value = '';
-        }
-
-        function insertLink() {
-            showModal('link-modal');
-        }
-
-        function showFontMenu() {
-            showModal('font-modal');
-        }
-
-        function showMoreOptions() {
-            showModal('more-options-modal');
-        }
-
-        // Modal functionality
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-            document.body.style.overflow = 'auto';
-        }
-
-        function applyFontSize(size) {
-            formatText('fontSize', size);
-            closeModal('font-modal');
-        }
-
-        function applyLink() {
-            const url = document.getElementById('link-url').value;
-            const text = document.getElementById('link-text').value;
-            
-            if (url) {
-                if (text) {
-                    const selection = window.getSelection();
-                    if (selection.rangeCount > 0) {
-                        const range = selection.getRangeAt(0);
-                        range.deleteContents();
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.textContent = text;
-                        link.target = '_blank';
-                        range.insertNode(link);
-                    } else {
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.textContent = text;
-                        link.target = '_blank';
-                        document.getElementById('journal-editor').appendChild(link);
-                    }
-                } else {
-                    formatText('createLink', url);
-                }
-                
-                // Clear inputs
-                document.getElementById('link-url').value = '';
-                document.getElementById('link-text').value = '';
-                closeModal('link-modal');
-                togglePlaceholder();
-            }
-        }
-
-        function showClearConfirmation() {
-            closeModal('more-options-modal');
-            showModal('clear-confirmation-modal');
-        }
-
-        function confirmClearEditor() {
-            document.getElementById('journal-editor').innerHTML = '';
-            document.getElementById('journal-editor').focus();
-            togglePlaceholder();
-            closeModal('clear-confirmation-modal');
-        }
-
+        // Close modals when clicking close button
+        document.querySelectorAll('.modal-close').forEach(button => {
+            button.addEventListener('click', () => {
+                const modalId = button.getAttribute('data-modal');
+                document.getElementById(modalId).classList.remove('show');
+            });
+        });
+        
         // Close modals when clicking outside
-        document.addEventListener('click', function(event) {
-            const modals = document.querySelectorAll('.modal-overlay');
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    closeModal(modal.id);
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
                 }
             });
         });
-
-        function insertEmoji() {
-            const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🌟', '💡', '🔥', '✨', '🎯'];
-            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-            formatText('insertText', emoji);
-        }
-
-        // Modified save entry function with redirect removed
-        function saveEntry() {
-            const content = document.getElementById('journal-editor').innerHTML;
-            const dateKey = selectedDate.toISOString().split('T')[0];
-            
-            if (content.trim()) {
-                // Get existing entries or create new object
-                const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
-                
-                // Save current entry with date as key
-                allEntries[dateKey] = {
-                    content: content,
-                    date: selectedDate.toISOString(),
-                    formattedDate: document.getElementById('current-date').textContent
-                };
-                
-                // Save back to localStorage
-                localStorage.setItem('journalEntries', JSON.stringify(allEntries));
-                
-                alert('Journal entry saved successfully!');
-                
-            } else {
-                alert('Please write something before saving.');
+        
+        // Link button functionality
+        document.getElementById('link-btn')?.addEventListener('click', () => {
+            const selection = window.getSelection();
+            if (selection.toString().trim() !== '') {
+                document.getElementById('link-text').value = selection.toString();
             }
-        }
-
-        // New function to go to journal log
-        function goToJournalLog() {
-            // Auto-save current entry before navigating
-            const content = document.getElementById('journal-editor').innerHTML;
-            if (content.trim()) {
-                const dateKey = selectedDate.toISOString().split('T')[0];
-                const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
-                
-                allEntries[dateKey] = {
-                    content: content,
-                    date: selectedDate.toISOString(),
-                    formattedDate: document.getElementById('current-date').textContent
-                };
-                
-                localStorage.setItem('journalEntries', JSON.stringify(allEntries));
-            }
-            
-            // Navigate to journal.html
-            window.location.href = 'journal.html';
-        }
-
-        // Load entry for selected date
-        function loadEntryForDate(date) {
-            const dateKey = date.toISOString().split('T')[0];
-            const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
-            const editor = document.getElementById('journal-editor');
-            
-            if (allEntries[dateKey]) {
-                editor.innerHTML = allEntries[dateKey].content;
-            } else {
-                editor.innerHTML = '';
-            }
-            
-            togglePlaceholder();
-        }
-
-        function clearEditor() {
-            showClearConfirmation();
-        }
-
-        // Update toolbar button states based on current selection
-        function updateToolbarState() {
-            const commands = ['bold', 'italic', 'underline'];
-            commands.forEach(command => {
-                const button = document.getElementById(command + '-btn');
-                if (button) {
-                    if (document.queryCommandState(command)) {
-                        button.classList.add('active');
-                    } else {
-                        button.classList.remove('active');
-                    }
-                }
-            });
-        }
-
-        // Focus on editor when page loads and initialize
-        window.addEventListener('load', function() {
-            setCurrentDate();
-            loadEntryForDate(selectedDate);
-            togglePlaceholder();
-            document.getElementById('journal-editor').focus();
+            document.getElementById('link-modal').classList.add('show');
         });
 
-        // Modified auto-save functionality (saves without redirect)
-        setInterval(function() {
-            const content = document.getElementById('journal-editor').innerHTML;
-            if (content.trim()) {
-                const dateKey = selectedDate.toISOString().split('T')[0];
+        // Insert link button
+        document.getElementById('insert-link-btn')?.addEventListener('click', () => {
+            const url = document.getElementById('link-url').value.trim();
+            const text = document.getElementById('link-text').value.trim() || url;
+            
+            if (!url) {
+                showStatus('Please enter a URL', 'error');
+                return;
+            }
+
+            const fullUrl = url.includes('://') ? url : `https://${url}`;
+            const linkHtml = `<a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                const div = document.createElement('div');
+                div.innerHTML = linkHtml;
+                const frag = document.createDocumentFragment();
+                while (div.firstChild) {
+                    frag.appendChild(div.firstChild);
+                }
+                range.insertNode(frag);
+            } else {
+                editor.insertAdjacentHTML('beforeend', linkHtml);
+            }
+
+            document.getElementById('link-url').value = '';
+            document.getElementById('link-text').value = '';
+            document.getElementById('link-modal').classList.remove('show');
+            state.hasUnsavedChanges = true;
+        });
+
+        // Image button functionality
+        document.getElementById('image-btn')?.addEventListener('click', () => {
+            document.getElementById('image-upload').click();
+        });
+
+        // Image upload handling - UPDATED VERSION
+        document.getElementById('image-upload')?.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                showStatus('Uploading image...', 'info');
                 
-                // Get existing entries or create new object
-                const allEntries = JSON.parse(localStorage.getItem('journalEntries') || '{}');
+                // First verify bucket access
+                if (!await verifyBucketAccess()) {
+                    showStatus('Cannot access image storage', 'error');
+                    return;
+                }
                 
-                // Save current entry with date as key
-                allEntries[dateKey] = {
-                    content: content,
-                    date: selectedDate.toISOString(),
-                    formattedDate: document.getElementById('current-date').textContent
+                // Generate safe filename
+                const fileName = `journal-${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`;
+                const filePath = `user-uploads/${state.currentUser.id}/${fileName}`;
+                
+                // Upload with error handling
+                const { error: uploadError } = await client.storage
+                    .from('image')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: false,
+                        contentType: file.type
+                    });
+                
+                if (uploadError) {
+                    console.error('Upload error details:', uploadError);
+                    throw uploadError;
+                }
+                
+                // Construct public URL
+                const publicUrl = `https://xvkjvftrriznqbvszdzo.supabase.co/storage/v1/object/public/image/${filePath}`;
+                console.log('Public URL:', publicUrl);
+                
+                // Verify URL works
+                const imgTest = new Image();
+                await new Promise((resolve, reject) => {
+                    imgTest.onload = resolve;
+                    imgTest.onerror = () => reject(new Error('Image URL not accessible'));
+                    imgTest.src = publicUrl;
+                });
+
+                // Create and insert image element
+                const img = document.createElement('img');
+                img.src = publicUrl;
+                img.alt = "Uploaded image";
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                img.style.borderRadius = '4px';
+                img.style.margin = '10px 0';
+                
+                // Error handling for image display
+                img.onerror = function() {
+                    console.error('Failed to load image:', publicUrl);
+                    showStatus('Image failed to display', 'error');
+                    this.remove();
                 };
                 
-                // Save back to localStorage
-                localStorage.setItem('journalEntries', JSON.stringify(allEntries));
+                // Insert into editor
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    selection.getRangeAt(0).insertNode(img);
+                } else {
+                    editor.appendChild(img);
+                }
+
+                editor.focus();
+                showStatus('Image uploaded successfully!', 'success');
+                state.hasUnsavedChanges = true;
                 
-                console.log('Entry auto-saved');
+            } catch (error) {
+                console.error('Image upload failed:', error);
+                showStatus(`Upload failed: ${error.message}`, 'error');
+            } finally {
+                e.target.value = ''; // Reset input
             }
-        }, 30000);
-    </script>
+        });
+    }
+
+    // Initialize the editor
+    initEditor();
+});
+</script>
 </body>
 </html>

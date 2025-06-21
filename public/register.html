@@ -5,7 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Sign Up Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
       rel="stylesheet"
@@ -96,9 +96,9 @@
     <!-- SCRIPT SECTION -->
     <script>
       // Initialize Supabase client
-      const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co'
-      const supabaseKey = process.env.SUPABASE_KEY
-      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+      const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+      const client = supabase.createClient(supabaseUrl, supabaseKey);
 
       // Function to show status message
       function showMessage(message, isError = false) {
@@ -123,63 +123,51 @@
       }
 
       // Sign-up form handler
-      document.getElementById('signupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // Show loading state
-        setLoading(true);
-        
-        const name = document.getElementById('nameInput').value;
-        const email = document.getElementById('emailInput').value;
-        const password = document.getElementById('passwordInput').value;
-        
-        try {
-          // Create user with email/password in Supabase Auth
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-              data: {
-                name: name // optional - adds to user metadata
-              }
-            }
-          });
-
-          if (signUpError) {
-            throw signUpError;
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setLoading(true);
+  
+      const name = document.getElementById('nameInput').value;
+      const email = document.getElementById('emailInput').value;
+      const password = document.getElementById('passwordInput').value;
+  
+      try {
+    // 1. Create auth user
+      const { data: authData, error: authError } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+         data: { name } // Stores in auth.user_metadata
           }
+        });
 
-          // (Optional) Insert user profile to your 'users' table
-          // NOTE: You must create 'users' table first in Supabase if you want this.
-          const { data: profileData, error: profileError } = await supabase
-            .from('users') // CHANGE this if your table is different
-            .insert([
-              {
-                id: signUpData.user.id, // use same user ID as auth
-                name: name,
-                email: email,
-                created_at: new Date().toISOString()
-              }
-            ]);
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('User creation failed');
 
-          if (profileError) {
-            console.warn('Profile insert error (ignored):', profileError.message);
-          }
+    // 2. Create profile in public.users
+      const { error: profileError } = await client
+        .from('users')
+        .insert([{
+          id: authData.user.id,
+          email,
+          name,
+          created_at: new Date().toISOString()
+        }]);
 
-          // Show success message
-          showMessage("Registration successful! Redirecting to login page...");
-          
-          // Redirect after a short delay
-          setTimeout(() => {
-            window.location.href = "login.html";
-          }, 1500);
-          
-        } catch (error) {
-          console.error("Error signing up:", error);
-          setLoading(false);
-          showMessage(error.message || 'An unexpected error occurred.', true);
-        }
-      });
+    if (profileError) throw profileError;
+
+    showMessage("Registration successful! Check your email to verify your account.");
+    
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 3000);
+
+  } catch (error) {
+    console.error("Signup error:", error);
+    showMessage(error.message || 'Registration failed', true);
+    setLoading(false);
+  }
+});
     </script>
   </body>
 </html>
