@@ -53,6 +53,50 @@
       outline: none;
       border-color: #2E619F;
     }
+
+    .image-upload-area {
+      border: 2px dashed #e9ecef;
+      border-radius: 5px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .image-upload-area:hover {
+      border-color: #2E619F;
+    }
+
+    .image-upload-area.dragover {
+      border-color: #2E619F;
+      background-color: #f8f9fa;
+    }
+
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .image-preview-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .remove-image {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      cursor: pointer;
+      font-size: 12px;
+    }
             
     .toolbar {
       display: flex;
@@ -214,20 +258,34 @@
   <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center">
       <div class="flex items-center">
-        <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+        <img src="Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
       </div>
       <div class="hidden md:flex space-x-6 items-center">
-        <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
         <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
         <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
-        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Article</a>
-        <a href="addmusic.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+        <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
         <div class="relative group flex items-center space-x-1">
           <button id="avatar-button" class="focus:outline-none">
-            <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+            <img src="Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
           </button>
-          <span id="username" class="text-white font-bold"></span>
+          <span id="username" class="text-white font-bold">Lucille</span>
+          <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+            <a href="userprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+            <a href="addreport.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Report a bug</a>
+            <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+          </div>
         </div>
+      </div>
+      <button class="md:hidden text-2xl" id="mobile-menu-button"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
+      <div class="container mx-auto py-4 flex flex-col space-y-4">
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+        <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <a href="login.html" class="text-red-400 hover:underline">Log Out</a>
       </div>
     </div>
   </nav>
@@ -254,6 +312,23 @@
       <div class="form-group">
         <label for="article-preview">Article Preview *</label>
         <textarea id="article-preview" rows="2" placeholder="Brief description or preview of the article (max 200 characters)..." maxlength="200" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="article-image">Article Cover Image</label>
+        <div class="image-upload-area" id="image-upload-area" onclick="document.getElementById('article-image-input').click()">
+          <div id="upload-placeholder">
+            <i class="fas fa-cloud-upload-alt fa-2x text-gray-400 mb-2"></i>
+            <p class="text-gray-600">Click to upload cover image or drag and drop</p>
+            <p class="text-sm text-gray-500">Supported formats: JPG, PNG, GIF (max 5MB)</p>
+          </div>
+          <div id="image-preview-container" style="display: none;">
+            <div class="image-preview-container">
+              <img id="image-preview" class="image-preview" src="" alt="Preview">
+              <button type="button" class="remove-image" onclick="removeImage(event)">×</button>
+            </div>
+          </div>
+        </div>
+        <input type="file" id="article-image-input" accept="image/*" style="display: none;" onchange="handleCoverImageUpload(event)">
       </div>
     </div>
 
@@ -308,6 +383,7 @@
   <script>
     let isEditMode = false;
     let editingArticleId = null;
+    let coverImageBase64 = null;
     
     // Initialize Supabase client
     const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co';
@@ -336,7 +412,35 @@
       
       // Set author to current user
       document.getElementById('article-author').value = username;
+
+      // Add drag and drop functionality
+      setupDragAndDrop();
     });
+
+    // Setup drag and drop for cover image
+    function setupDragAndDrop() {
+      const uploadArea = document.getElementById('image-upload-area');
+      
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+      
+      uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+      });
+      
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+          handleCoverImageFile(files[0]);
+        }
+      });
+    }
 
     // Check if we're in edit mode
     async function checkEditMode() {
@@ -378,11 +482,61 @@
           document.getElementById('article-preview').value = data.preview || '';
           document.getElementById('editor').innerHTML = data.isi_artikel || 
             '<h2><strong>Write your article content here...</strong></h2><p>Start typing your article content. Use the toolbar above for formatting options.</p>';
+          
+          // Load cover image if exists
+          if (data.gambar_artikel) {
+            coverImageBase64 = data.gambar_artikel;
+            showImagePreview(data.gambar_artikel);
+          }
         }
       } catch (error) {
         console.error('Error loading article:', error);
         alert('Failed to load article for editing. Please try again.');
       }
+    }
+
+    // Handle cover image upload
+    function handleCoverImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        handleCoverImageFile(file);
+      }
+    }
+
+    // Handle cover image file processing
+    function handleCoverImageFile(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('Image size must be less than 5MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        coverImageBase64 = e.target.result;
+        showImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Show image preview
+    function showImagePreview(src) {
+      document.getElementById('upload-placeholder').style.display = 'none';
+      document.getElementById('image-preview-container').style.display = 'block';
+      document.getElementById('image-preview').src = src;
+    }
+
+    // Remove cover image
+    function removeImage(event) {
+      event.stopPropagation();
+      coverImageBase64 = null;
+      document.getElementById('upload-placeholder').style.display = 'block';
+      document.getElementById('image-preview-container').style.display = 'none';
+      document.getElementById('article-image-input').value = '';
     }
 
     // Text formatting functions
@@ -482,13 +636,20 @@
       try {
         if (isEditMode && editingArticleId) {
           // Update existing article
+          const updateData = {
+            judul_artikel,
+            isi_artikel,
+            preview
+          };
+          
+          // Add image if provided
+          if (coverImageBase64) {
+            updateData.gambar_artikel = coverImageBase64;
+          }
+
           const { data, error } = await supabaseClient
             .from('artikel')
-            .update({
-              judul_artikel,
-              isi_artikel,
-              preview
-            })
+            .update(updateData)
             .eq('id_artikel', editingArticleId)
             .select();
 
@@ -521,16 +682,23 @@
             throw new Error('Unable to generate unique article ID. Please try again.');
           }
 
+          const articleData = {
+            id_artikel: articleId,
+            judul_artikel,
+            isi_artikel,
+            penulis,
+            preview,
+            tanggal_dibuat: new Date().toISOString()
+          };
+
+          // Add image if provided
+          if (coverImageBase64) {
+            articleData.gambar_artikel = coverImageBase64;
+          }
+
           const { data, error } = await supabaseClient
             .from('artikel')
-            .insert([{
-              id_artikel: articleId,
-              judul_artikel,
-              isi_artikel,
-              penulis,
-              preview,
-              tanggal_dibuat: new Date().toISOString()
-            }])
+            .insert([articleData])
             .select();
 
           if (error) throw error;

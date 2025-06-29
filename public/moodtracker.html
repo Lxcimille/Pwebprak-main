@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mood Tracker - GWS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,6 +18,7 @@
         .mood-button {
             transition: all 0.3s ease;
             cursor: pointer;
+            position: relative;
         }
         
         .mood-button:hover {
@@ -29,6 +31,30 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            border-color: #3B82F6;
+        }
+        
+        .mood-button.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #10B981;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mood-button.selected span {
+            color: white;
         }
         
         .editor {
@@ -52,45 +78,97 @@
         .date-badge {
             background: linear-gradient(135deg, #3B82F6, #1E40AF);
         }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: #10B981;
+        }
+
+        .notification.error {
+            background-color: #EF4444;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
 
     <!-- Navbar -->
-    <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
-            </div>
-            <div class="hidden md:flex space-x-6 items-center">
-                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-                <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
-                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
-                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
-                <div class="relative group flex items-center space-x-1">
-                    <button id="avatar-button" class="focus:outline-none">
-                        <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
-                    </button>
-                    <span id="username" class="text-white font-bold">Lucille</span>
-                    <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
-                    </div>
+    <!-- Navbar -->
+<nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center">
+            <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+        </div>
+        <div class="hidden md:flex space-x-6 items-center">
+            <a href="dashboardadmin.html" id="admin-link" class="hover:underline hover:text-blue-200 transition hidden">Admin</a>
+            <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+            <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+            <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+            <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+            
+            <!-- Avatar with Dropdown -->
+            <div class="relative group flex items-center space-x-1">
+                <button id="avatar-button" class="focus:outline-none">
+                    <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                </button>
+                <span id="username" class="text-white font-bold">Loading...</span>
+                
+                <!-- Dropdown Menu -->
+                <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
                 </div>
             </div>
-            <button class="md:hidden text-2xl" id="mobile-menu-button">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
-    </nav>
+        <button class="md:hidden text-2xl" id="mobile-menu-button">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+        <div class="flex flex-col space-y-3">
+            <a href="dashboardadmin.html" id="mobile-admin-link" class="hover:text-blue-200 transition hidden">Admin</a>
+            <a href="journal.html" class="hover:text-blue-200 transition">Journal</a>
+            <a href="moodtracker.html" class="hover:text-blue-200 transition">Tracker</a>
+            <a href="article.html" class="hover:text-blue-200 transition">Articles</a>
+            <a href="music.html" class="hover:text-blue-200 transition">Music</a>
+            <div class="flex items-center space-x-2 pt-2 border-t border-blue-400">
+                <img src="../Illustrations/Generic avatar.png" width="32" height="32" class="rounded-full">
+                <span id="mobile-username" class="text-white font-bold">Loading...</span>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:underline text-left">Logout</button>
+        </div>
+    </div>
+</nav>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Header Section -->
         <div class="flex justify-between items-center pb-2 mb-4">
-            <button class="bg-[#2E619F] text-white px-4 py-2 font-semibold rounded-md text-sm">
-                Friday, March 14th <i class="fas fa-chevron-down ml-1"></i>
+            <button class="bg-[#2E619F] text-white px-4 py-2 font-semibold rounded-md text-sm" id="date-picker">
+                <span id="current-date">Friday, March 14th</span> <i class="fas fa-chevron-down ml-1"></i>
             </button>
             <button class="bg-[#2E619F] text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-800 transition" onclick="window.location.href = 'moodlog.html'">
                 Mood Log
@@ -103,7 +181,7 @@
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <!-- Happy Button -->
-                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="happy">
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="happy" data-mood-id="01">
                     <div class="mr-3">
                         <img src="../Illustrations/happy.png" alt="happy emoji" class="h-8 md:h-10 w-auto mr-2">
                     </div>
@@ -111,7 +189,7 @@
                 </div>
                 
                 <!-- Neutral Button -->
-                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="neutral">
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="neutral" data-mood-id="02">
                     <div class="mr-3">
                         <img src="../Illustrations/neutral.png" alt="neutral emoji" class="h-8 md:h-10 w-auto mr-2">
                     </div>
@@ -119,7 +197,7 @@
                 </div>
                 
                 <!-- Angry Button -->
-                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="angry">
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="angry" data-mood-id="03">
                     <div class="mr-3">
                         <img src="../Illustrations/angry.png" alt="angry emoji" class="h-8 md:h-10 w-auto mr-2">
                     </div>
@@ -127,7 +205,7 @@
                 </div>
                 
                 <!-- Sad Button -->
-                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="sad">
+                <div class="mood-button border-2 border-blue-300 rounded-xl p-4 flex items-center justify-center" data-mood="sad" data-mood-id="04">
                     <div class="mr-3">
                         <img src="../Illustrations/sad.png" alt="sad emoji" class="h-8 md:h-10 w-auto mr-2">
                     </div>
@@ -137,18 +215,19 @@
 
             <!-- Text Input Area -->
             <div class="editor-container bg-gray-50 rounded-xl border-2 border-blue-200 focus-within:border-blue-400 transition-colors">
-                <div class="editor" contenteditable="true" placeholder="Insert your thoughts here...">
-                    <p class="text-gray-400">Insert your thoughts here...</p>
+                <div class="editor" contenteditable="true" placeholder="Write your thoughts and notes here...">
+                    <p class="text-gray-400">Write your thoughts and notes here...</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Save Button -->
-    <div class="mt-6 flex justify-end">
-      <button onclick="saveMoodLog()" class="bg-[#2E619F] text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-800 transition">
-        Save
-      </button>
+        <!-- Save Button -->
+        <div class="mt-6 flex justify-end">
+            <button id="save-button" onclick="saveMoodLog()" class="bg-[#2E619F] text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-800 transition">
+                <span id="save-text">Save</span>
+                <i id="save-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -192,7 +271,113 @@
     </footer>
 
     <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let selectedMood = null;
+        let selectedMoodId = null;
+        
+        // Get current authenticated user
+        let currentUserId = null;
+        
+        // Initialize authentication and get current user
+        // Initialize authentication and load user info
+async function initializeAuth() {
+    try {
+        console.log('Starting authentication check...');
+        
+        // First check if there's a session
+        const { data: { session }, error: sessionError } = await client.auth.getSession();
+        
+        if (sessionError) {
+            console.error('Session error:', sessionError);
+            redirectToLogin();
+            return;
+        }
+        
+        if (!session || !session.user) {
+            console.log('No active session found');
+            redirectToLogin();
+            return;
+        }
+        
+        const user = session.user;
+        console.log('User authenticated:', user.id);
+        currentUserId = user.id;
+        
+        let displayName = '';
+        let isAdmin = false;
+        
+        try {
+            // First check if user is admin
+            const { data: adminData, error: adminError } = await client
+                .from('admin')
+                .select('nama_admin')
+                .eq('user_id', user.id)
+                .single();
+
+            if (adminData && !adminError) {
+                // User is admin, use admin name
+                displayName = adminData.nama_admin;
+                isAdmin = true;
+                console.log('User is admin:', displayName);
+            } else {
+                // User is not admin, get name from users table
+                const { data: userData, error: userError } = await client
+                    .from('users')
+                    .select('name')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (userData && !userError) {
+                    displayName = userData.name;
+                } else {
+                    // Fallback to user metadata or email
+                    displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+                }
+                console.log('User is regular user:', displayName);
+            }
+        } catch (dbError) {
+            console.warn('Database query error, using fallback name:', dbError);
+            displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+        }
+
+        // Update username displays
+        const usernameElement = document.getElementById('username');
+        const mobileUsernameElement = document.getElementById('mobile-username');
+        
+        if (usernameElement) usernameElement.textContent = displayName;
+        if (mobileUsernameElement) mobileUsernameElement.textContent = displayName;
+        
+        // Show/hide admin links based on admin status
+        const adminLink = document.getElementById('admin-link');
+        const mobileAdminLink = document.getElementById('mobile-admin-link');
+        
+        if (isAdmin) {
+            adminLink?.classList.remove('hidden');
+            mobileAdminLink?.classList.remove('hidden');
+        } else {
+            adminLink?.classList.add('hidden');
+            mobileAdminLink?.classList.add('hidden');
+        }
+        
+        console.log('Authentication successful, user loaded');
+        
+    } catch (error) {
+        console.error('Error initializing auth:', error);
+        redirectToLogin();
+    }
+}
+
+function redirectToLogin() {
+    console.log('Redirecting to login...');
+    // Add a small delay to prevent immediate redirect loops
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 500);
+}
         
         // Handle mood selection
         document.querySelectorAll('.mood-button').forEach(button => {
@@ -205,24 +390,53 @@
                 // Add selected class to clicked button
                 this.classList.add('selected');
                 selectedMood = this.dataset.mood;
+                selectedMoodId = this.dataset.moodId;
             });
         });
         
         // Handle placeholder text in editor
         const editor = document.querySelector('.editor');
+        
         editor.addEventListener('focus', function() {
-            if (this.textContent.trim() === 'Insert your thoughts here...') {
+            if (this.textContent.trim() === 'Write your thoughts and notes here...') {
                 this.innerHTML = '';
-                this.style.color = '#333';
             }
         });
         
         editor.addEventListener('blur', function() {
             if (this.textContent.trim() === '') {
-                this.innerHTML = '<p class="text-gray-400">Insert your thoughts here...</p>';
+                this.innerHTML = '<p class="text-gray-400">Write your thoughts and notes here...</p>';
             }
         });
         
+        editor.addEventListener('input', function() {
+            // Remove placeholder styling when user starts typing
+            if (this.textContent.trim() !== '' && this.textContent.trim() !== 'Write your thoughts and notes here...') {
+                this.style.color = '#333';
+            }
+        });
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
         // Update current date
         function updateDate() {
             const now = new Date();
@@ -232,25 +446,151 @@
                 day: 'numeric',
             };
             const dateString = now.toLocaleDateString('en-US', options);
-            const formattedDate = dateString.replace(/(\d+),/, '$1th -');
+            // Format the date properly
+            const formattedDate = dateString.replace(/(\d+),/, '$1');
             document.getElementById('current-date').textContent = formattedDate;
         }
         
-        // Save mood log function
-        function saveMoodLog() {
-            //backend di sini
+        // Save mood log function - with proper authentication
+        async function saveMoodLog() {
+            // Check if user is authenticated
+            if (!currentUserId) {
+                showNotification('Please log in to save your mood', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
 
-            window.location.href = 'moodlog.html'
-            alert(`Mood log saved!\nMood: ${selectedMood}\nThoughts: ${thoughts.substring(0, 50)}...`);
+            if (!selectedMoodId) {
+                showNotification('Please select a mood first!', 'error');
+                return;
+            }
+
+            // Show loading state
+            const saveButton = document.getElementById('save-button');
+            const saveText = document.getElementById('save-text');
+            const saveSpinner = document.getElementById('save-spinner');
             
-            // Redirect to another page (replace with your desired URL)
-            // window.location.href = 'mood-history.html';
+            saveButton.classList.add('loading');
+            saveText.textContent = 'Saving...';
+            saveSpinner.classList.remove('hidden');
+
+            try {
+                // Get the thoughts from the editor
+                const editor = document.querySelector('.editor');
+                let thoughts = editor.textContent.trim();
+                
+                // Remove placeholder text if it's still there
+                if (thoughts === 'Write your thoughts and notes here...') {
+                    thoughts = '';
+                }
+
+                // Get current date in the correct format
+                const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+                // Prepare mood data with authenticated user ID
+                const moodData = {
+                    user_id: currentUserId, // Authenticated user's UUID from Supabase Auth
+                    kategori_mood_id: selectedMoodId, // String like "01", "02", etc.
+                    tanggal_mood: currentDate, // Date in YYYY-MM-DD format
+                    catatan_mood: thoughts || null // User's notes/thoughts
+                };
+
+                console.log('Attempting to save mood data:', moodData);
+
+                // Insert mood entry into database
+                const { data, error } = await client
+                    .from('mood_tracker')
+                    .insert(moodData)
+                    .select();
+
+                if (error) {
+                    console.error('Insert error details:', error);
+                    
+                    // Provide more specific error messages
+                    if (error.code === '23505') {
+                        throw new Error('You have already logged your mood for today!');
+                    } else if (error.code === '23503') {
+                        throw new Error('Invalid mood category selected.');
+                    } else if (error.code === '42501') {
+                        throw new Error('Permission denied. Please check your authentication.');
+                    } else {
+                        throw new Error(`Database error: ${error.message}`);
+                    }
+                }
+
+                console.log('Mood data saved successfully:', data);
+                showNotification('Mood log saved successfully!', 'success');
+                
+                // Reset form
+                setTimeout(() => {
+                    // Clear selections
+                    document.querySelectorAll('.mood-button').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    selectedMood = null;
+                    selectedMoodId = null;
+                    
+                    // Clear editor
+                    editor.innerHTML = '<p class="text-gray-400">Write your thoughts and notes here...</p>';
+                    
+                    // Optionally redirect to mood log page
+                    // window.location.href = 'moodlog.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error saving mood log:', error);
+                showNotification(`Failed to save: ${error.message}`, 'error');
+            } finally {
+                // Reset loading state
+                saveButton.classList.remove('loading');
+                saveText.textContent = 'Save';
+                saveSpinner.classList.add('hidden');
+            }
         }
         
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize authentication first
+            await initializeAuth();
+            
+            updateDate();
+            
+            // Update date every minute
+            setInterval(updateDate, 60000);
+        });
+        
+        // Logout function
+        async function logout() {
+            try {
+                const { error } = await client.auth.signOut();
+                if (error) {
+                    console.error('Logout error:', error);
+                }
+                // Redirect to login page
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Error during logout:', error);
+                // Force redirect even if logout fails
+                window.location.href = 'login.html';
+            }
+        }
         
         // Mobile menu toggle
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            // Add mobile menu functionality here if needed
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Listen for auth state changes
+        client.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event, session);
+            
+            if (event === 'SIGNED_OUT' || !session) {
+                console.log('User signed out, redirecting to login');
+                window.location.href = 'login.html';
+            }
         });
     </script>
 </body>

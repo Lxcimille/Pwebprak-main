@@ -5,399 +5,182 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Articles</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f9fafb;
-    }
+    body { font-family: 'Poppins', sans-serif; background-color: #f9fafb; scroll-behavior: smooth; }
     
     .article-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
+      background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease; overflow: hidden; border: 1px solid #e5e7eb;
     }
-    
-    .article-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
+    .article-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
     
     .article-header {
       background: linear-gradient(135deg, #2E619F 0%, #1e4a73 100%);
-      color: white;
-      padding: 1.5rem;
+      color: white; padding: 1.5rem;
     }
-    
-    .article-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      line-height: 1.3;
-    }
-    
+    .article-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3; }
     .article-meta {
-      font-size: 0.875rem;
-      opacity: 0.9;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
+      font-size: 0.875rem; opacity: 0.9; display: flex; align-items: center;
+      gap: 1rem; flex-wrap: wrap;
     }
     
-    .article-content {
-      padding: 1.5rem;
-      color: #374151;
-      line-height: 1.7;
-    }
-    
-    .article-preview {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      color: #6b7280;
-    }
+    .article-content { padding: 1.5rem; color: #374151; line-height: 1.7; }
+    .article-preview { font-size: 1rem; margin-bottom: 1rem; color: #6b7280; }
     
     .article-actions {
-      border-top: 1px solid #f3f4f6;
-      padding: 1rem 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #f9fafb;
+      border-top: 1px solid #f3f4f6; padding: 1rem 1.5rem; display: flex;
+      justify-content: space-between; align-items: center; background-color: #f9fafb;
     }
     
-    .read-more-btn {
-      background-color: #2E619F;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .read-more-btn, .edit-btn, .delete-btn {
+      padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 600;
+      border: none; cursor: pointer; transition: background-color 0.2s;
+      display: flex; align-items: center; gap: 0.5rem; color: white;
     }
+    .read-more-btn { background-color: #2E619F; }
+    .read-more-btn:hover { background-color: #1e4a73; }
+    .edit-btn { background-color: #10b981; }
+    .edit-btn:hover { background-color: #059669; }
+    .delete-btn { background-color: #ef4444; margin-left: 0.5rem; }
+    .delete-btn:hover { background-color: #dc2626; }
     
-    .read-more-btn:hover {
-      background-color: #1e4a73;
-    }
-    
-    .edit-btn {
-      background-color: #10b981;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .edit-btn:hover {
-      background-color: #059669;
-    }
-
-    .delete-btn {
-      background-color: #ef4444;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-left: 0.5rem;
-    }
-    
-    .delete-btn:hover {
-      background-color: #dc2626;
-    }
-    
-    .no-articles {
-      text-align: center;
-      padding: 4rem 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+    .no-articles { text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
     
     .search-bar {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-      margin-bottom: 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
+      background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
     }
-    
-    .search-input {
-      flex: 1;
-      min-width: 200px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      transition: border-color 0.2s;
+    .search-input, .filter-select {
+      border: 2px solid #e5e7eb; border-radius: 8px; padding: 0.75rem 1rem;
+      font-size: 1rem; transition: border-color 0.2s;
     }
-    
-    .search-input:focus {
-      outline: none;
-      border-color: #2E619F;
-    }
-    
-    .filter-select {
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      background: white;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      min-width: 150px;
-    }
-    
-    .filter-select:focus {
-      outline: none;
-      border-color: #2E619F;
-    }
+    .search-input { flex: 1; min-width: 200px; }
+    .search-input:focus, .filter-select:focus { outline: none; border-color: #2E619F; }
+    .filter-select { background: white; cursor: pointer; min-width: 150px; }
     
     .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      padding: 1rem;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5); z-index: 1000; padding: 1rem;
     }
-    
     .modal-content {
-      background: white;
-      margin: 2% auto;
-      padding: 0;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 800px;
-      max-height: 90vh;
-      overflow-y: auto;
+      background: white; margin: 2% auto; padding: 0; border-radius: 12px;
+      width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
-    
     .modal-header {
       background: linear-gradient(135deg, #2E619F 0%, #1e4a73 100%);
-      color: white;
-      padding: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 12px 12px 0 0;
+      color: white; padding: 1.5rem; display: flex; justify-content: space-between;
+      align-items: center; border-radius: 12px 12px 0 0;
     }
-    
-    .modal-body {
-      padding: 2rem;
-      line-height: 1.7;
-      color: #374151;
-    }
-    
+    .modal-body { padding: 2rem; line-height: 1.7; color: #374151; }
     .close-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;
+      padding: 0.5rem; border-radius: 4px; transition: background-color 0.2s;
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
     }
-    
-    .close-btn:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
+    .close-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
 
     .add-article-btn {
-      background: linear-gradient(135deg, #2E619F, #4A90C2);
-      color: white;
-      padding: 1rem 2rem;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 1rem;
-      text-decoration: none;
+      background: linear-gradient(135deg, #2E619F, #4A90C2); color: white;
+      padding: 1rem 2rem; border: none; border-radius: 25px; cursor: pointer;
+      font-weight: 600; transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1rem; text-decoration: none;
     }
-
-    .add-article-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(46, 97, 159, 0.3);
-    }
+    .add-article-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(46, 97, 159, 0.3); }
 
     .delete-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1001;
-      padding: 1rem;
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5); z-index: 1001; padding: 1rem;
     }
-
     .delete-modal-content {
-      background: white;
-      margin: 15% auto;
-      padding: 2rem;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      animation: modalSlideIn 0.3s ease-out;
+      background: white; margin: 15% auto; padding: 2rem; border-radius: 12px;
+      width: 100%; max-width: 400px; text-align: center; animation: modalSlideIn 0.3s ease-out;
     }
-
     @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .confirm-delete-btn {
-      background-color: #ef4444;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      margin-right: 0.5rem;
-      transition: background-color 0.2s;
+    .confirm-delete-btn, .cancel-delete-btn {
+      padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer;
+      font-weight: 600; transition: background-color 0.2s;
     }
+    .confirm-delete-btn { background-color: #ef4444; color: white; margin-right: 0.5rem; }
+    .confirm-delete-btn:hover { background-color: #dc2626; }
+    .cancel-delete-btn { background-color: #6b7280; color: white; }
+    .cancel-delete-btn:hover { background-color: #4b5563; }
 
-    .confirm-delete-btn:hover {
-      background-color: #dc2626;
+    .updated-badge { background-color: #f59e0b; color: white; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; }
+    .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .btn-primary {
+      transition: all 0.3s ease;
     }
-
-    .cancel-delete-btn {
-      background-color: #6b7280;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.2s;
-    }
-
-    .cancel-delete-btn:hover {
-      background-color: #4b5563;
-    }
-
-    .updated-badge {
-      background-color: #f59e0b;
-      color: white;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     @media (max-width: 768px) {
-      .article-actions {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-      }
-      
-      .btn-group {
-        justify-content: center;
-      }
-      
-      .search-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      
-      .filter-select {
-        min-width: auto;
-      }
-      
-      .modal-content {
-        margin: 5% auto;
-      }
-      
-      .modal-body {
-        padding: 1rem;
-      }
+      .article-actions { flex-direction: column; gap: 1rem; align-items: stretch; }
+      .btn-group { justify-content: center; }
+      .search-bar { flex-direction: column; align-items: stretch; }
+      .filter-select { min-width: auto; }
+      .modal-content { margin: 5% auto; }
+      .modal-body { padding: 1rem; }
     }
+
+    .loading { text-align: center; padding: 2rem; }
+    .error { background-color: #fee2e2; border: 1px solid #fecaca; color: #dc2626; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
   </style>
 </head>
-<body>
+<body class="font-poppins bg-gray-100">
   <!-- Navbar -->
-  <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-40">
+  <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
     <div class="container mx-auto flex justify-between items-center">
       <div class="flex items-center">
-        <div class="flex items-center">
-                <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
-        </div>
+        <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2" onerror="this.style.display='none'">
       </div>
       <div class="hidden md:flex space-x-6 items-center">
         <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
         <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-        <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
-        <a href="article.html" class="hover:underline hover:text-blue-200 transition font-bold">Article</a>
-        <a href="addmusic.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition font-bold">Articles</a>
+        <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        
+        <!-- Avatar with Dropdown -->
         <div class="relative group flex items-center space-x-1">
           <button id="avatar-button" class="focus:outline-none">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center cursor-pointer">
-              <i class="fas fa-user text-[#2E619F]"></i>
-            </div>
+            <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer" onerror="this.style.display='none'">
           </button>
           <span id="username" class="text-white font-bold"></span>
+          
+          <!-- Dropdown Menu -->
+          <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+            <a href="userprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+            <a href="addreport.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Report a bug</a>
+            <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" onclick="logout()">Logout</a>
+          </div>
         </div>
       </div>
-      <!-- Mobile menu button -->
-      <button id="mobile-menu-btn" class="md:hidden text-white">
-        <i class="fas fa-bars text-xl"></i>
+      <button class="md:hidden text-2xl" id="mobile-menu-button">
+        <i class="fas fa-bars"></i>
       </button>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
+      <div class="container mx-auto py-4 flex flex-col space-y-4">
+        <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+        <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <a href="login.html" class="text-red-400 hover:underline" onclick="logout()">Logout</a>
+      </div>
     </div>
   </nav>
 
@@ -418,12 +201,7 @@
     <!-- Search and Filter Bar -->
     <div class="search-bar">
       <div class="flex-1">
-        <input 
-          type="text" 
-          id="search-input" 
-          class="search-input" 
-          placeholder="Search articles by title, author, or content..."
-        >
+        <input type="text" id="search-input" class="search-input" placeholder="Search articles by title, author, or content...">
       </div>
       <select id="sort-filter" class="filter-select">
         <option value="newest">Newest First</option>
@@ -433,9 +211,15 @@
       </select>
     </div>
 
+    <!-- Error Display -->
+    <div id="error-container"></div>
+
     <!-- Articles Container -->
     <div id="articles-container" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Articles will be loaded here -->
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin text-2xl text-[#2E619F] mb-2"></i>
+        <p>Loading articles...</p>
+      </div>
     </div>
   </div>
 
@@ -471,34 +255,92 @@
   </div>
 
   <script>
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // Global variables
     let articles = [];
     let filteredArticles = [];
     let articleToDelete = null;
+    let currentUser = null;
+    let isAdmin = false;
 
     // Initialize the page
-    document.addEventListener('DOMContentLoaded', function() {
-      const username = localStorage.getItem('username') || 'Admin';
-      document.getElementById('username').textContent = username;
+    document.addEventListener('DOMContentLoaded', async function() {
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return window.location.href = 'login.html';
       
-      loadArticles();
+      currentUser = session.user;
+      await checkAuth();
+      await loadArticles();
       
-      // Add event listeners
+      setupEventListeners();
+    });
+
+    // Check auth and admin status
+    async function checkAuth() {
+      let displayName = currentUser.email || 'User'; // fallback to email
+      
+      // Check if user is admin first
+      const { data: adminData } = await client
+          .from('admin')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
+
+      isAdmin = !!adminData;
+      
+      if (isAdmin && adminData.nama_admin) {
+          displayName = adminData.nama_admin;
+      } else {
+          // Check regular users table
+          const { data: userData } = await client
+              .from('users')
+              .select('name')
+              .eq('id', currentUser.id)
+              .single();
+          
+          if (userData && userData.name) {
+              displayName = userData.name;
+          }
+      }
+      
+      document.getElementById('username').textContent = displayName;
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Search and filter
       document.getElementById('search-input').addEventListener('input', filterArticles);
       document.getElementById('sort-filter').addEventListener('change', filterArticles);
       document.getElementById('confirm-delete').addEventListener('click', deleteArticle);
       
-      // Close modals when clicking outside
-      document.getElementById('read-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeReadModal();
+      // Mobile menu toggle
+      document.getElementById('mobile-menu-button').addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.toggle('hidden');
+      });
+
+      // Avatar dropdown
+      document.getElementById('avatar-button').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('avatar-dropdown').classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('avatar-button').contains(e.target)) {
+          document.getElementById('avatar-dropdown').classList.add('hidden');
         }
       });
       
+      // Close modals when clicking outside
+      document.getElementById('read-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeReadModal();
+      });
+      
       document.getElementById('delete-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeDeleteModal();
-        }
+        if (e.target === this) closeDeleteModal();
       });
       
       // Keyboard shortcuts
@@ -508,19 +350,35 @@
           closeDeleteModal();
         }
       });
-    });
+    }
 
-    // Load articles from localStorage
-    function loadArticles() {
+    // Load articles from Supabase
+    async function loadArticles() {
       try {
-        const storedArticles = localStorage.getItem('articles');
-        articles = storedArticles ? JSON.parse(storedArticles) : [];
+        showLoading();
+        const { data, error } = await client
+          .from('artikel')
+          .select('*')
+          .order('tanggal_dibuat', { ascending: false });
+
+        if (error) throw error;
+
+        articles = data.map(article => ({
+          id: article.id_artikel,
+          title: article.judul_artikel,
+          content: article.isi_artikel,
+          author: article.penulis,
+          createdAt: article.tanggal_dibuat,
+          preview: article.preview,
+          image: article.gambar_artikel
+        }));
+
         filteredArticles = [...articles];
         renderArticles();
+        hideError();
       } catch (error) {
         console.error('Error loading articles:', error);
-        articles = [];
-        filteredArticles = [];
+        showError('Failed to load articles. Please try again.');
         renderArticles();
       }
     }
@@ -546,10 +404,6 @@
 
       container.innerHTML = filteredArticles.map(article => {
         const createdDate = formatDate(article.createdAt);
-        const updatedDate = article.updatedAt ? formatDate(article.updatedAt) : null;
-        const isUpdated = updatedDate && updatedDate !== createdDate;
-        
-        // Strip HTML tags for preview
         const plainTextContent = stripHtml(article.content);
         const contentPreview = plainTextContent.length > 150 ? 
           plainTextContent.substring(0, 150) + '...' : plainTextContent;
@@ -561,7 +415,6 @@
               <div class="article-meta">
                 <span><i class="fas fa-user mr-1"></i>${escapeHtml(article.author)}</span>
                 <span><i class="fas fa-calendar mr-1"></i>${createdDate}</span>
-                ${isUpdated ? `<span class="updated-badge"><i class="fas fa-edit mr-1"></i>Updated ${updatedDate}</span>` : ''}
               </div>
             </div>
             
@@ -596,31 +449,22 @@
       const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
       const sortBy = document.getElementById('sort-filter').value;
 
-      // Filter by search term
       filteredArticles = articles.filter(article => {
         if (!searchTerm) return true;
         
-        const titleMatch = article.title.toLowerCase().includes(searchTerm);
-        const authorMatch = article.author.toLowerCase().includes(searchTerm);
-        const contentMatch = stripHtml(article.content).toLowerCase().includes(searchTerm);
-        const previewMatch = article.preview.toLowerCase().includes(searchTerm);
-        
-        return titleMatch || authorMatch || contentMatch || previewMatch;
+        return article.title.toLowerCase().includes(searchTerm) ||
+               article.author.toLowerCase().includes(searchTerm) ||
+               stripHtml(article.content).toLowerCase().includes(searchTerm) ||
+               article.preview.toLowerCase().includes(searchTerm);
       });
 
-      // Sort articles
       filteredArticles.sort((a, b) => {
         switch (sortBy) {
-          case 'newest':
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-          case 'oldest':
-            return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-          case 'title':
-            return (a.title || '').localeCompare(b.title || '');
-          case 'author':
-            return (a.author || '').localeCompare(b.author || '');
-          default:
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+          case 'newest': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+          case 'oldest': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+          case 'title': return (a.title || '').localeCompare(b.title || '');
+          case 'author': return (a.author || '').localeCompare(b.author || '');
+          default: return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         }
       });
 
@@ -633,16 +477,10 @@
       if (!article) return;
 
       document.getElementById('modal-title').textContent = article.title;
-      
-      const createdDate = formatDate(article.createdAt);
-      const updatedDate = article.updatedAt ? formatDate(article.updatedAt) : null;
-      const isUpdated = updatedDate && updatedDate !== createdDate;
-      
       document.getElementById('modal-meta').innerHTML = `
         <div class="flex flex-wrap gap-4 text-sm">
           <span><i class="fas fa-user mr-1"></i><strong>Author:</strong> ${escapeHtml(article.author)}</span>
-          <span><i class="fas fa-calendar mr-1"></i><strong>Created:</strong> ${createdDate}</span>
-          ${isUpdated ? `<span><i class="fas fa-edit mr-1"></i><strong>Updated:</strong> ${updatedDate}</span>` : ''}
+          <span><i class="fas fa-calendar mr-1"></i><strong>Created:</strong> ${formatDate(article.createdAt)}</span>
         </div>
         <div class="mt-2">
           <p class="text-gray-600 italic">${escapeHtml(article.preview)}</p>
@@ -654,26 +492,21 @@
       document.body.style.overflow = 'hidden';
     }
 
-    // Close read more modal
     function closeReadModal() {
       document.getElementById('read-modal').style.display = 'none';
       document.body.style.overflow = '';
     }
 
-    // Add new article
     function addNewArticle() {
-      // Clear any existing edit mode
       localStorage.removeItem('editArticleId');
       window.location.href = 'articleeditor.html';
     }
 
-    // Edit article
     function editArticle(articleId) {
       localStorage.setItem('editArticleId', articleId);
       window.location.href = 'articleeditor.html';
     }
 
-    // Confirm delete
     function confirmDelete(articleId, articleTitle) {
       articleToDelete = articleId;
       document.getElementById('delete-article-title').textContent = articleTitle;
@@ -681,21 +514,25 @@
       document.body.style.overflow = 'hidden';
     }
 
-    // Close delete modal
     function closeDeleteModal() {
       document.getElementById('delete-modal').style.display = 'none';
       document.body.style.overflow = '';
       articleToDelete = null;
     }
 
-    // Delete article
-    function deleteArticle() {
+    // Delete article from Supabase
+    async function deleteArticle() {
       if (!articleToDelete) return;
 
       try {
-        articles = articles.filter(article => article.id !== articleToDelete);
-        localStorage.setItem('articles', JSON.stringify(articles));
-        loadArticles(); // Reload to refresh display
+        const { error } = await client
+          .from('artikel')
+          .delete()
+          .eq('id_artikel', articleToDelete);
+
+        if (error) throw error;
+
+        await loadArticles();
         closeDeleteModal();
         showNotification('Article deleted successfully', 'success');
       } catch (error) {
@@ -704,18 +541,20 @@
       }
     }
 
+    // Logout function
+    async function logout() {
+      await client.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
     // Utility functions
     function formatDate(dateString) {
       if (!dateString) return 'Unknown';
       try {
         return new Date(dateString).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
+          year: 'numeric', month: 'short', day: 'numeric'
         });
-      } catch {
-        return 'Invalid Date';
-      }
+      } catch { return 'Invalid Date'; }
     }
 
     function stripHtml(html) {
@@ -736,8 +575,7 @@
       const notification = document.createElement('div');
       notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 ${
         type === 'success' ? 'bg-green-500 text-white' : 
-        type === 'error' ? 'bg-red-500 text-white' : 
-        'bg-blue-500 text-white'
+        type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
       }`;
       notification.innerHTML = `
         <div class="flex items-center gap-2">
@@ -747,7 +585,6 @@
       `;
       
       document.body.appendChild(notification);
-      
       setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
@@ -755,8 +592,27 @@
       }, 3000);
     }
 
-    // Refresh articles when page gains focus
-    window.addEventListener('focus', loadArticles);
+    function showLoading() {
+      document.getElementById('articles-container').innerHTML = `
+        <div class="loading col-span-full">
+          <i class="fas fa-spinner fa-spin text-2xl text-[#2E619F] mb-2"></i>
+          <p>Loading articles...</p>
+        </div>
+      `;
+    }
+
+    function showError(message) {
+      document.getElementById('error-container').innerHTML = `
+        <div class="error">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          ${escapeHtml(message)}
+        </div>
+      `;
+    }
+
+    function hideError() {
+      document.getElementById('error-container').innerHTML = '';
+    }
   </script>
 </body>
 </html>

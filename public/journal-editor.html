@@ -65,39 +65,53 @@
     <div id="status-message" class="status-message"></div>
 
     <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
-            </div>
-            <div class="hidden md:flex space-x-6 items-center">
-                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-                <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
-                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
-                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
-                <div class="relative group flex items-center space-x-1">
-                    <button id="avatar-button" class="focus:outline-none">
-                        <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
-                    </button>
-                    <span id="username" class="text-white font-bold">Lucille</span>
-                    <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
-                        <a href="" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
-                    </div>
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center">
+            <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+        </div>
+        <div class="hidden md:flex space-x-6 items-center">
+            <a href="dashboardadmin.html" id="admin-link" class="hover:underline hover:text-blue-200 transition hidden">Admin</a>
+            <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+            <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+            <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+            <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+            
+            <!-- Avatar with Dropdown -->
+            <div class="relative group flex items-center space-x-1">
+                <button id="avatar-button" class="focus:outline-none">
+                    <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                </button>
+                <span id="username" class="text-white font-bold">Loading...</span>
+                
+                <!-- Dropdown Menu -->
+                <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+                    <a href="userprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                    <a href="addreport.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Report a bug</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
                 </div>
             </div>
-            <button class="md:hidden text-2xl" id="mobile-menu-button"><i class="fas fa-bars"></i></button>
         </div>
-        <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
-            <div class="container mx-auto py-4 flex flex-col space-y-4">
-                <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-                <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
-                <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
-                <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
-                <a href="login.html" class="text-red-400 hover:underline">Log Out</a>
+        <button class="md:hidden text-2xl" id="mobile-menu-button">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+        <div class="flex flex-col space-y-3">
+            <a href="dashboardadmin.html" id="mobile-admin-link" class="hover:text-blue-200 transition hidden">Admin</a>
+            <a href="journal.html" class="hover:text-blue-200 transition">Journal</a>
+            <a href="moodtracker.html" class="hover:text-blue-200 transition">Tracker</a>
+            <a href="article.html" class="hover:text-blue-200 transition">Articles</a>
+            <a href="music.html" class="hover:text-blue-200 transition">Music</a>
+            <div class="flex items-center space-x-2 pt-2 border-t border-blue-400">
+                <img src="../Illustrations/Generic avatar.png" width="32" height="32" class="rounded-full">
+                <span id="mobile-username" class="text-white font-bold">Loading...</span>
             </div>
+            <button onclick="logout()" class="text-red-400 hover:underline text-left">Logout</button>
         </div>
-    </nav>
+    </div>
+</nav>
     
     <div class="main-content">
         <div class="toolbar">
@@ -239,6 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
     const client = supabase.createClient(supabaseUrl, supabaseKey);
 
+    // Global variables
+    let currentUserId = null;
+
+    // Debug function (matching journal log page)
+    function debugLog(message, data) {
+        console.log('DEBUG:', message, data || '');
+    }
+
     // State management
     const state = {
         currentUser: null,
@@ -267,6 +289,138 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDate = new Date();
     let selectedDate = new Date();
 
+    // Initialize authentication (matching journal log page structure)
+    async function initializeAuth() {
+        try {
+            debugLog('Initializing authentication...');
+            
+            if (!client) {
+                throw new Error('Supabase client not available');
+            }
+
+            const { data: { user }, error } = await client.auth.getUser();
+            
+            if (error) {
+                debugLog('Auth error:', error);
+                throw error;
+            }
+            
+            if (!user) {
+                debugLog('No authenticated user found');
+                throw new Error('No authenticated user');
+            }
+            
+            currentUserId = user.id;
+            state.currentUser = user;
+            debugLog('User authenticated:', user.id);
+            
+            let displayName = '';
+            let isAdmin = false;
+            
+            // First check if user is admin
+            try {
+                const { data: adminData, error: adminError } = await client
+                    .from('admin')
+                    .select('nama_admin')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (!adminError && adminData) {
+                    // User is admin, use admin name
+                    displayName = adminData.nama_admin;
+                    isAdmin = true;
+                    debugLog('User is admin:', displayName);
+                }
+            } catch (adminCheckError) {
+                debugLog('Admin check failed (user is likely not admin):', adminCheckError);
+            }
+
+            if (!isAdmin) {
+                // User is not admin, get name from users table
+                try {
+                    const { data: userData, error: userError } = await client
+                        .from('users')
+                        .select('name')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (!userError && userData) {
+                        displayName = userData.name;
+                    } else {
+                        // Fallback to user metadata or email
+                        displayName = user.user_metadata?.full_name || 
+                                    user.user_metadata?.name || 
+                                    user.email?.split('@')[0] || 
+                                    'User';
+                    }
+                    debugLog('User display name:', displayName);
+                } catch (userCheckError) {
+                    debugLog('User data check failed, using fallback:', userCheckError);
+                    displayName = user.user_metadata?.full_name || 
+                                user.user_metadata?.name || 
+                                user.email?.split('@')[0] || 
+                                'User';
+                }
+            }
+
+            // Update username displays
+            const usernameElement = document.getElementById('username');
+            const mobileUsernameElement = document.getElementById('mobile-username');
+            
+            if (usernameElement) {
+                usernameElement.textContent = displayName;
+            }
+            if (mobileUsernameElement) {
+                mobileUsernameElement.textContent = displayName;
+            }
+            
+            // Show/hide admin links based on admin status
+            const adminLink = document.getElementById('admin-link');
+            const mobileAdminLink = document.getElementById('mobile-admin-link');
+            
+            if (isAdmin) {
+                adminLink?.classList.remove('hidden');
+                mobileAdminLink?.classList.remove('hidden');
+            } else {
+                adminLink?.classList.add('hidden');
+                mobileAdminLink?.classList.add('hidden');
+            }
+            
+            debugLog('Authentication initialized successfully');
+            return true;
+            
+        } catch (error) {
+            debugLog('Error initializing auth:', error);
+            throw error;
+        }
+    }
+
+    // Logout function (matching journal log page)
+    async function logout() {
+        try {
+            if (client) {
+                const { error } = await client.auth.signOut();
+                if (error) {
+                    debugLog('Logout error:', error);
+                }
+            }
+            
+            // Clear any stored data
+            currentUserId = null;
+            state.currentUser = null;
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        } catch (error) {
+            debugLog('Error during logout:', error);
+            // Force redirect even if logout fails
+            window.location.href = 'login.html';
+        }
+    }
+
+    // Make logout function global
+    window.logout = logout;
+
     // Initialize the editor
     async function initEditor() {
         try {
@@ -277,8 +431,8 @@ document.addEventListener('DOMContentLoaded', () => {
             editor.style.wordWrap = 'break-word';
             editor.style.overflowWrap = 'break-word';
 
-            // Check auth state
-            await checkAuthState();
+            // Initialize auth first
+            await initializeAuth();
             
             // Check for existing entry to edit
             const editingEntryId = localStorage.getItem('editingEntryId');
@@ -293,17 +447,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Initialization error:', error);
             showStatus('Failed to initialize editor', 'error');
+            // If auth fails, redirect to login
+            window.location.href = 'login.html';
         }
-    }
-
-    // Check authentication state
-    async function checkAuthState() {
-        const { data: { user }, error } = await client.auth.getUser();
-        if (error || !user) {
-            showStatus('Please log in to save entries', 'error');
-            return;
-        }
-        state.currentUser = user;
     }
 
     // Load an existing entry
@@ -539,6 +685,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupEventListeners() {
+        // Add event listeners for navbar (matching journal log page structure)
+        try {
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Avatar dropdown toggle
+            const avatarButton = document.getElementById('avatar-button');
+            const avatarDropdown = document.getElementById('avatar-dropdown');
+            
+            if (avatarButton && avatarDropdown) {
+                avatarButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    avatarDropdown.classList.toggle('hidden');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function() {
+                    avatarDropdown.classList.add('hidden');
+                });
+            }
+            
+            debugLog('Navbar event listeners attached successfully');
+        } catch (error) {
+            debugLog('Error attaching navbar event listeners:', error);
+        }
+
         // Editor content changes
         editor.addEventListener('input', () => {
             togglePlaceholder();
@@ -785,8 +964,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Handle authentication state changes (matching journal log page)
+    if (client) {
+        client.auth.onAuthStateChange((event, session) => {
+            debugLog('Auth state changed:', event);
+            
+            if (event === 'SIGNED_OUT' || !session) {
+                debugLog('User signed out, redirecting to login');
+                window.location.href = 'login.html';
+            }
+        });
+    }
+
     // Initialize the editor
     initEditor();
+
+    debugLog('Script loaded successfully');
 });
 </script>
 </body>

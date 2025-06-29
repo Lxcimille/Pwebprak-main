@@ -6,11 +6,7 @@
     <title>GWS Add Music</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -31,27 +27,27 @@
     <nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center">
-                <img src="Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+                <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2" onerror="this.style.display='none'">
             </div>
             <div class="hidden md:flex space-x-6 items-center">
                 <a href="dashboardadmin.html" class="hover:underline hover:text-blue-200 transition">Admin</a>
                 <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-                <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
                 <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
                 <a href="music.html" class="hover:underline hover:text-blue-200 transition"><p>Music</p></a>
                 
                 <!-- Avatar with Dropdown -->
                 <div class="relative group flex items-center space-x-1">
                     <button id="avatar-button" class="focus:outline-none">
-                        <img src="Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                        <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer" onerror="this.style.display='none'">
                     </button>
                     <span id="username" class="text-white font-bold"></span>
                     
                     <!-- Dropdown Menu -->
                     <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                        <a href="userprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="addreport.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Report a bug</a>
+                        <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" onclick="logout()">Logout</a>
                     </div>
                 </div>
             </div>
@@ -64,77 +60,56 @@
         <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
             <div class="container mx-auto py-4 flex flex-col space-y-4">
                 <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
-                <a href="#" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+                <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
                 <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
                 <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
-                <a href="login.html" class="text-red-400 hover:underline">Logout</a>
+                <a href="login.html" class="text-red-400 hover:underline" onclick="logout()">Logout</a>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
     <main class="p-8">
-   <h1 class="text-3xl font-bold text-[#2E619F]">
-    Music
-    </h1>
+        <h1 class="text-3xl font-bold text-[#2E619F]">
+            Music
+        </h1>
         
-        <!-- Add Music Button -->
-        <div class="mb-8">
-            <button id="add-music-btn" class="bg-[#2E619F] hover:bg-[#245080] text-white px-6 py-3 rounded-lg font-medium transition duration-300 flex items-center space-x-2">
+        <!-- Show Add Music button only for admins -->
+        <div id="admin-controls" class="mb-8" style="display: none;">
+            <a href="addmusicdetail.html" id="add-music-btn" class="inline-flex bg-[#2E619F] hover:bg-[#245080] text-white px-6 py-3 rounded-lg font-medium transition duration-300 items-center space-x-2 no-underline">
                 <i class="fas fa-plus"></i>
                 <span>Add Music</span>
-            </button>
+            </a>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-16">
+            <div class="mb-6">
+                <i class="fas fa-spinner fa-spin text-6xl text-gray-400"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-600 mb-4">Loading Music...</h2>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="text-center py-16 hidden">
+            <div class="mb-6">
+                <i class="fas fa-music text-6xl text-gray-400"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-600 mb-4">No Music Added Yet</h2>
+            <p class="text-gray-500 mb-6">Start building your music collection by adding your first track.</p>
+            <a href="addmusicdetail.html" id="empty-add-music" class="inline-flex bg-[#2E619F] hover:bg-[#245080] text-white px-6 py-3 rounded-lg font-medium transition duration-300 items-center space-x-2 no-underline" style="display: none;">
+                <i class="fas fa-plus"></i>
+                <span>Add Your First Music</span>
+            </a>
         </div>
 
         <!-- Music List -->
-        <div class="space-y-4 mb-8">
-            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
-                <div class="flex items-center">
-                    <img src="Illustrations/calming.jpg" alt="Mountain landscape" class="w-14 h-14 rounded-lg object-cover mr-4">
-                    <h3 class="text-lg font-medium">Relaxing Music</h3>
-                </div>
-                
-                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
-                    <i class="fas fa-play text-white text-sm"></i>
-                </button>
-            </div>
-            
-            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
-                <div class="flex items-center">
-                    <img src="Illustrations/peaceful.jpg" alt="Sunset with reeds" class="w-14 h-14 rounded-lg object-cover mr-4">
-                    <h3 class="text-lg font-medium">Calming Lo-Fi</h3>
-                </div>
-                
-                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
-                    <i class="fas fa-play text-white text-sm"></i>
-                </button>
-            </div>
-
-            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
-                <div class="flex items-center">
-                    <img src="Illustrations/calming.jpg" alt="Mountain landscape" class="w-14 h-14 rounded-lg object-cover mr-4">
-                    <h3 class="text-lg font-medium">Relaxing Music</h3>
-                </div>
-                
-                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Relaxing Music" data-img="Illustrations/calming.jpg">
-                    <i class="fas fa-play text-white text-sm"></i>
-                </button>
-            </div>
-            
-            <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
-                <div class="flex items-center">
-                    <img src="Illustrations/peaceful.jpg" alt="Sunset with reeds" class="w-14 h-14 rounded-lg object-cover mr-4">
-                    <h3 class="text-lg font-medium">Calming Lo-Fi</h3>
-                </div>
-                
-                <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-title="Calming Lo-Fi" data-img="Illustrations/peaceful.jpg">
-                    <i class="fas fa-play text-white text-sm"></i>
-                </button>
-            </div>
+        <div id="music-list" class="space-y-4 mb-8 hidden">
+            <!-- Music items will be dynamically loaded here -->
         </div>
     </main>
 
-    <!-- Music Player Modal (Hidden by default) -->
+    <!-- Music Player Modal -->
     <div id="music-player-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-lg p-6 max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
@@ -148,15 +123,27 @@
                 <img id="modal-image" src="" alt="Music cover" class="w-32 h-32 rounded-lg object-cover mx-auto mb-4">
                 <h4 id="modal-music-title" class="text-xl font-medium mb-4">Music Title</h4>
                 
+                <audio id="audio-player" controls class="w-full mb-4">
+                    <source id="audio-source" src="" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                
                 <div class="flex justify-center space-x-4">
                     <button id="prev-btn" class="h-12 w-12 bg-[#2E619F] text-white rounded-full flex items-center justify-center hover:bg-[#245080] transition">
                         <i class="fas fa-backward"></i>
                     </button>
                     <button id="play-pause-btn" class="h-12 w-12 bg-[#2E619F] text-white rounded-full flex items-center justify-center hover:bg-[#245080] transition">
-                        <i class="fas fa-pause"></i>
+                        <i class="fas fa-play"></i>
                     </button>
                     <button id="next-btn" class="h-12 w-12 bg-[#2E619F] text-white rounded-full flex items-center justify-center hover:bg-[#245080] transition">
                         <i class="fas fa-forward"></i>
+                    </button>
+                </div>
+                
+                <!-- Admin delete button -->
+                <div id="admin-delete" class="mt-4" style="display: none;">
+                    <button id="delete-music-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition duration-300">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
@@ -164,129 +151,246 @@
     </div>
 
     <script>
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
+        // Initialize Supabase client
+        const supabaseUrl = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+        const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            mobileMenu.classList.toggle('show');
+        let currentUser = null;
+        let isAdmin = false;
+        let musicList = [];
+        let currentMusicIndex = 0;
+        const audioPlayer = document.getElementById('audio-player');
+        const defaultCoverUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjNEE1NTY4Ii8+CjxwYXRoIGQ9Ik02NCA4NEM3My4yNTQ4IDg0IDgwLjcyOTIgNzYuNTI1NiA4MCA2NEM4MCA1My40NzQ0IDczLjI1NDggNDYgNjQgNDZDNTQuNzQ1MiA0NiA0NyA1My40NzQ0IDQ3IDY0QzQ3IDc2LjUyNTYgNTQuNzQ1MiA4NCA2NCA4NFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=';
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return window.location.href = 'login.html';
+            
+            currentUser = session.user;
+            await checkAuth();
+            await loadMusic();
+            setupEventListeners();
         });
 
-        // Add Music Button
-        const addMusicBtn = document.getElementById('add-music-btn');
-        addMusicBtn.addEventListener('click', () => {
-            alert('Add Music functionality would be implemented here');
-        });
+        // Check auth and admin status
+        async function checkAuth() {
+    let displayName = currentUser.email || 'User'; // fallback to email
+    
+    // Check if user is admin first
+    const { data: adminData } = await client
+        .from('admin')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .single();
 
-        // Music Player Functionality
-        const playButtons = document.querySelectorAll('.play-button');
-        const musicItems = document.querySelectorAll('.music-item');
-        const modal = document.getElementById('music-player-modal');
-        const closeModal = document.getElementById('close-modal');
-        const modalImage = document.getElementById('modal-image');
-        const modalTitle = document.getElementById('modal-music-title');
-        const playPauseBtn = document.getElementById('play-pause-btn');
+    isAdmin = !!adminData;
+    
+    if (isAdmin && adminData.nama_admin) {
+        displayName = adminData.nama_admin;
+    } else {
+        // Check regular users table
+        const { data: userData } = await client
+            .from('users')
+            .select('name')
+            .eq('id', currentUser.id)
+            .single();
+        
+        if (userData && userData.name) {
+            displayName = userData.name;
+        }
+    }
+    
+    document.getElementById('username').textContent = displayName;
+    
+    if (isAdmin) {
+        document.getElementById('admin-controls').style.display = 'block';
+        document.getElementById('empty-add-music').style.display = 'inline-flex';
+        document.getElementById('admin-delete').style.display = 'block';
+    }
+}
 
-        let isPlaying = false;
+        // Load music from database
+        async function loadMusic() {
+            try {
+                const { data, error } = await client
+                    .from('music')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-        // Play button click handler
-        playButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
+                if (error) throw error;
+                
+                musicList = data || [];
+                displayMusic();
+            } catch (error) {
+                console.error('Error loading music:', error);
+                showEmptyState();
+            }
+        }
+
+        // Display music list
+        function displayMusic() {
+            document.getElementById('loading-state').classList.add('hidden');
+
+            if (musicList.length === 0) {
+                return showEmptyState();
+            }
+
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('music-list').classList.remove('hidden');
+
+            document.getElementById('music-list').innerHTML = musicList.map((music, index) => {
+                const title = music.judul_musik || 'Unknown Title';
+                const coverUrl = music.cover_url || defaultCoverUrl;
+                
+                return `
+                    <div class="music-item bg-[#5d8bc0] rounded-xl p-4 text-white flex justify-between items-center cursor-pointer hover:bg-[#4a7cb3] transition" data-index="${index}">
+                        <div class="flex items-center">
+                            <img src="${coverUrl}" alt="${title}" class="w-14 h-14 rounded-lg object-cover mr-4" onerror="this.src='${defaultCoverUrl}'">
+                            <h3 class="text-lg font-medium">${title}</h3>
+                        </div>
+                        
+                        <button class="play-button h-10 w-10 bg-white bg-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-50 transition" data-index="${index}">
+                            <i class="fas fa-play text-white text-sm"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners to music items
+            document.querySelectorAll('.music-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.play-button')) {
+                        openMusicPlayer(parseInt(item.dataset.index));
+                    }
+                });
+            });
+
+            document.querySelectorAll('.play-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openMusicPlayer(parseInt(button.dataset.index));
+                });
+            });
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('empty-state').classList.remove('hidden');
+            document.getElementById('music-list').classList.add('hidden');
+        }
+
+        // Open music player
+        function openMusicPlayer(index) {
+            currentMusicIndex = index;
+            const music = musicList[index];
+            
+            const title = music.judul_musik || 'Unknown Title';
+            const coverUrl = music.cover_url || defaultCoverUrl;
+            const musicUrl = music.music_url || '';
+            
+            document.getElementById('modal-music-title').textContent = title;
+            document.getElementById('modal-image').src = coverUrl;
+            document.getElementById('audio-source').src = musicUrl;
+            
+            audioPlayer.load();
+            audioPlayer.play().catch(console.error);
+            
+            document.getElementById('music-player-modal').classList.remove('hidden');
+        }
+
+        // Delete music (admin only)
+        async function deleteMusic() {
+            if (!isAdmin) return alert('You do not have permission to delete music.');
+
+            const music = musicList[currentMusicIndex];
+            const title = music.judul_musik || 'Unknown Title';
+            
+            if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+
+            try {
+                // Delete files from storage
+                if (music.music_url) {
+                    await client.storage.from('music').remove([`songs/${music.music_url}`]);
+                }
+                if (music.cover_url) {
+                    await client.storage.from('music').remove([`covers/${music.cover_url}`]);
+                }
+
+                // Delete from database
+                const { error } = await client
+                    .from('music')
+                    .delete()
+                    .eq('id_musik', music.id_musik || music.id);
+
+                if (error) throw error;
+
+                document.getElementById('music-player-modal').classList.add('hidden');
+                audioPlayer.pause();
+                await loadMusic();
+                alert('Music deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting music:', error);
+                alert('Error deleting music. Please try again.');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('mobile-menu-button').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('music-player-modal').classList.add('hidden');
+                audioPlayer.pause();
+            });
+
+            document.getElementById('play-pause-btn').addEventListener('click', () => {
+                audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
+            });
+
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentMusicIndex > 0) openMusicPlayer(currentMusicIndex - 1);
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentMusicIndex < musicList.length - 1) openMusicPlayer(currentMusicIndex + 1);
+            });
+
+            document.getElementById('delete-music-btn').addEventListener('click', deleteMusic);
+
+            audioPlayer.addEventListener('play', () => {
+                document.querySelector('#play-pause-btn i').className = 'fas fa-pause';
+            });
+
+            audioPlayer.addEventListener('pause', () => {
+                document.querySelector('#play-pause-btn i').className = 'fas fa-play';
+            });
+
+            audioPlayer.addEventListener('ended', () => {
+                if (currentMusicIndex < musicList.length - 1) openMusicPlayer(currentMusicIndex + 1);
+            });
+
+            document.getElementById('avatar-button').addEventListener('click', (e) => {
                 e.stopPropagation();
-                const title = button.getAttribute('data-title');
-                const img = button.getAttribute('data-img');
-                openMusicPlayer(title, img);
+                document.getElementById('avatar-dropdown').classList.toggle('hidden');
             });
-        });
 
-        // Music item click handler
-        musicItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const title = item.getAttribute('data-title');
-                const img = item.getAttribute('data-img');
-                openMusicPlayer(title, img);
+            document.addEventListener('click', (e) => {
+                if (!document.getElementById('avatar-button').contains(e.target)) {
+                    document.getElementById('avatar-dropdown').classList.add('hidden');
+                }
             });
-        });
-
-        function openMusicPlayer(title, img) {
-            modalTitle.textContent = title;
-            modalImage.src = img;
-            modal.classList.remove('hidden');
-            isPlaying = true;
-            updatePlayButton();
         }
 
-        // Close modal
-        closeModal.addEventListener('click', () => {
-            modal.classList.add('hidden');
-        });
-
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-
-        // Play/Pause functionality
-        playPauseBtn.addEventListener('click', () => {
-            isPlaying = !isPlaying;
-            updatePlayButton();
-        });
-
-        function updatePlayButton() {
-            const icon = playPauseBtn.querySelector('i');
-            if (isPlaying) {
-                icon.className = 'fas fa-pause';
-            } else {
-                icon.className = 'fas fa-play';
-            }
+        // Logout function
+        async function logout() {
+            await client.auth.signOut();
+            window.location.href = 'login.html';
         }
-
-        // Previous and Next buttons (placeholder functionality)
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            console.log('Previous track');
-        });
-
-        document.getElementById('next-btn').addEventListener('click', () => {
-            console.log('Next track');
-        });
-
-        // Username display (you can set this from your login system)
-        document.addEventListener('DOMContentLoaded', () => {
-            // Example: Set username from localStorage or session
-            const username = localStorage.getItem('username');
-            document.getElementById('username').textContent = username;
-            document.getElementById('mobile-username').textContent = username;
-        });
-
-        // Avatar dropdown functionality
-        const avatarButton = document.getElementById('avatar-button');
-        const avatarDropdown = document.getElementById('avatar-dropdown');
-
-        avatarButton.addEventListener('click', () => {
-            avatarDropdown.classList.toggle('hidden');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!avatarButton.contains(e.target) && !avatarDropdown.contains(e.target)) {
-                avatarDropdown.classList.add('hidden');
-            }
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !modal.classList.contains('hidden')) {
-                e.preventDefault();
-                isPlaying = !isPlaying;
-                updatePlayButton();
-            }
-            if (e.code === 'Escape' && !modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-            }
-        });
     </script>
 </body>
 </html>

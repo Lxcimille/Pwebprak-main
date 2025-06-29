@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Articles - GWS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Poppins', sans-serif; background-color: #f9fafb; }
+    
+    .article-card {
+      background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease; overflow: hidden; border: 1px solid #e5e7eb;
+      cursor: pointer;
+    }
+    .article-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+    
+    .article-image {
+      width: 100%; height: 200px; object-fit: cover; background-color: #f3f4f6;
+    }
+    
+    .article-header {
+      background: linear-gradient(135deg, #2E619F 0%, #1e4a73 100%);
+      color: white; padding: 1.5rem;
+    }
+    .article-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3; }
+    .article-meta {
+      font-size: 0.875rem; opacity: 0.9; display: flex; align-items: center;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    
+    .article-content { padding: 1.5rem; color: #374151; line-height: 1.7; }
+    .article-preview { font-size: 1rem; margin-bottom: 1rem; color: #6b7280; text-align: justify;}
+    
+    .no-articles { text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    
+    .search-bar {
+      background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .search-input, .filter-select {
+      border: 2px solid #e5e7eb; border-radius: 8px; padding: 0.75rem 1rem;
+      font-size: 1rem; transition: border-color 0.2s;
+    }
+    .search-input { flex: 1; min-width: 400px; }
+    .search-input:focus, .filter-select:focus { outline: none; border-color: #2E619F; }
+    .filter-select { background: white; cursor: pointer; min-width: 150px; padding-right: 3px; }
+    
+    .page-header {
+      background: linear-gradient(135deg, #2E619F 0%, #1e4a73 100%);
+      color: white; padding: 2rem 0; margin-bottom: 2rem;
+    }
+
+    /* Article Detail Styles */
+    .article-detail-header {
+      padding: 3rem 0; margin-bottom: 0;
+    }
+    
+    .article-detail-header h1 {
+      color: #2E619F;
+    }
+    
+    .article-detail-header p {
+      color: #6b7280;
+      text-align: justify;
+    }
+    
+    .article-detail-image {
+      width: 100%; height: 400px; object-fit: cover; margin-bottom: 2rem;
+      border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .article-detail-content {
+      background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 2rem; margin-bottom: 2rem; line-height: 1.8; color: #374151;
+    }
+    
+    .article-detail-content h1, .article-detail-content h2, .article-detail-content h3 {
+      color: #2E619F; margin-top: 2rem; margin-bottom: 1rem; font-weight: 700;
+    }
+    
+    .article-detail-content h1 { font-size: 2rem; }
+    .article-detail-content h2 { font-size: 1.5rem; }
+    .article-detail-content h3 { font-size: 1.25rem; }
+    
+    .article-detail-content p {
+      margin-bottom: 1rem; text-align: justify;
+    }
+    
+    .article-detail-content ul, .article-detail-content ol {
+      margin: 1rem 0; padding-left: 2rem;
+    }
+    
+    .article-detail-content li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .article-detail-meta {
+      background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 2rem;
+      align-items: center; justify-content: space-between;
+    }
+    
+    .meta-item {
+      display: flex; align-items: center; gap: 0.5rem; color: #6b7280;
+    }
+    
+    .back-btn {
+      background: linear-gradient(135deg, #2E619F, #4A90C2); color: white;
+      padding: 0.75rem 1.5rem; border: none; border-radius: 25px; cursor: pointer;
+      font-weight: 600; transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
+      margin-bottom: 2rem;
+    }
+    .back-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(46, 97, 159, 0.3); }
+
+    @media (max-width: 768px) {
+      .search-bar { flex-direction: column; align-items: stretch; }
+      .filter-select { min-width: auto; }
+      .article-image { height: 150px; }
+      .article-detail-header { padding: 2rem 0; }
+      .article-detail-content { padding: 1.5rem; }
+      .article-detail-image { height: 250px; }
+      .article-detail-meta { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+
+    .loading { text-align: center; padding: 2rem; }
+    .error { background-color: #fee2e2; border: 1px solid #fecaca; color: #dc2626; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    .not-found { text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    
+    .debug { position: fixed; top: 10px; right: 10px; background: black; color: white; padding: 10px; border-radius: 5px; z-index: 9999; font-size: 12px; }
+  </style>
+</head>
+<body>
+    
+  <!-- Debug Info -->
+  <div id="debug-info" class="debug" style="display: none;">
+    <div>Articles loaded: <span id="debug-count">0</span></div>
+    <div>Click test: <span id="debug-click">None</span></div>
+  </div>
+
+  <!-- Navbar -->
+  <!-- Navbar -->
+<nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <div class="flex items-center">
+        <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+      </div>
+      <div class="hidden md:flex space-x-6 items-center">
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+        <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <div class="relative group flex items-center space-x-1">
+          <button id="avatar-button" class="focus:outline-none">
+            <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+          </button>
+          <span id="username" class="text-white font-bold">Lucille</span>
+          <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+            <a href="userprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+            <a href="addreport.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Report a bug</a>
+            <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+          </div>
+        </div>
+      </div>
+      <button class="md:hidden text-2xl" id="mobile-menu-button"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="md:hidden hidden bg-[#1a4a7f] w-full" id="mobile-menu">
+      <div class="container mx-auto py-4 flex flex-col space-y-4">
+        <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+        <a href="tracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+        <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+        <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+        <a href="login.html" class="text-red-400 hover:underline">Log Out</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Articles List View -->
+  <div id="articles-list-view">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="container mx-auto px-4">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2">Articles</h1>
+        <p class="text-blue-100">Discover insightful articles about mental health and wellness</p>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pb-8">
+      <!-- Search and Filter Bar -->
+      <div class="search-bar">
+        <div class="flex-1">
+          <input type="text" id="search-input" class="search-input" placeholder="Search articles by title, author, or content...">
+        </div>
+        <select id="sort-filter" class="filter-select">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="title">Title A-Z</option>
+          <option value="author">Author A-Z</option>
+        </select>
+      </div>
+
+      <!-- Error Display -->
+      <div id="error-container"></div>
+
+      <!-- Articles Container -->
+      <div id="articles-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="loading col-span-full">
+          <i class="fas fa-spinner fa-spin text-2xl text-[#2E619F] mb-2"></i>
+          <p>Loading articles...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Article Detail View -->
+  <div id="article-detail-view" style="display: none;">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <!-- Back Button -->
+      <button onclick="showArticlesList()" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Back to Articles
+      </button>
+
+      <!-- Article Content -->
+      <div id="article-detail-container">
+        <!-- Article Header -->
+        <div class="article-detail-header">
+          <div class="container mx-auto px-4">
+            <h1 id="detail-title" class="text-3xl md:text-4xl font-bold mb-4"></h1>
+            <p id="detail-preview" class="text-lg" style="text-align: justify;"></p>
+          </div>
+        </div>
+
+        <!-- Article Image -->
+        <div id="detail-image-container"></div>
+
+        <!-- Article Meta -->
+        <div class="article-detail-meta">
+          <div class="meta-item">
+            <i class="fas fa-user text-[#2E619F]"></i>
+            <span><strong>Author:</strong> <span id="detail-author"></span></span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar text-[#2E619F]"></i>
+            <span><strong>Published:</strong> <span id="detail-date"></span></span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-clock text-[#2E619F]"></i>
+            <span><strong>Reading time:</strong> <span id="detail-reading-time"></span></span>
+          </div>
+        </div>
+
+        <!-- Article Content -->
+        <div class="article-detail-content">
+          <div id="detail-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Enable debug mode
+    let debugMode = true;
+    
+    function debugLog(message, data) {
+      if (debugMode) {
+        console.log('DEBUG:', message, data || '');
+        if (document.getElementById('debug-info')) {
+          document.getElementById('debug-info').style.display = 'block';
+        }
+      }
+    }
+
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+    
+    let client;
+    let currentUserId = null;
+    
+    try {
+      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      debugLog('Supabase client created successfully');
+    } catch (error) {
+      debugLog('Error creating Supabase client:', error);
+      // Create mock data if Supabase fails
+      client = null;
+    }
+
+    // Global variables
+    let articles = [];
+    let filteredArticles = [];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      debugLog('Page loaded, initializing...');
+
+      // Initialize authentication first, then load articles
+      initializeAuth().then(() => {
+        loadArticles();
+      }).catch((error) => {
+        debugLog('Auth initialization failed:', error);
+        // If auth fails, redirect to login
+        window.location.href = 'login.html';
+      });
+      
+      // Add event listeners
+      try {
+        document.getElementById('search-input').addEventListener('input', filterArticles);
+        document.getElementById('sort-filter').addEventListener('change', filterArticles);
+        
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+          mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+        
+        // Avatar dropdown toggle
+        const avatarButton = document.getElementById('avatar-button');
+        const avatarDropdown = document.getElementById('avatar-dropdown');
+        
+        if (avatarButton && avatarDropdown) {
+          avatarButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            avatarDropdown.classList.toggle('hidden');
+          });
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', function() {
+            avatarDropdown.classList.add('hidden');
+          });
+        }
+        
+        debugLog('Event listeners attached successfully');
+      } catch (error) {
+        debugLog('Error attaching event listeners:', error);
+      }
+    });
+
+    // Initialize authentication
+    async function initializeAuth() {
+      try {
+        debugLog('Initializing authentication...');
+        
+        if (!client) {
+          throw new Error('Supabase client not available');
+        }
+
+        const { data: { user }, error } = await client.auth.getUser();
+        
+        if (error) {
+          debugLog('Auth error:', error);
+          throw error;
+        }
+        
+        if (!user) {
+          debugLog('No authenticated user found');
+          throw new Error('No authenticated user');
+        }
+        
+        currentUserId = user.id;
+        debugLog('User authenticated:', user.id);
+        
+        let displayName = '';
+        let isAdmin = false;
+        
+        // First check if user is admin
+        try {
+          const { data: adminData, error: adminError } = await client
+            .from('admin')
+            .select('nama_admin')
+            .eq('user_id', user.id)
+            .single();
+
+          if (!adminError && adminData) {
+            // User is admin, use admin name
+            displayName = adminData.nama_admin;
+            isAdmin = true;
+            debugLog('User is admin:', displayName);
+          }
+        } catch (adminCheckError) {
+          debugLog('Admin check failed (user is likely not admin):', adminCheckError);
+        }
+
+        if (!isAdmin) {
+          // User is not admin, get name from users table
+          try {
+            const { data: userData, error: userError } = await client
+              .from('users')
+              .select('name')
+              .eq('id', user.id)
+              .single();
+            
+            if (!userError && userData) {
+              displayName = userData.name;
+            } else {
+              // Fallback to user metadata or email
+              displayName = user.user_metadata?.full_name || 
+                          user.user_metadata?.name || 
+                          user.email?.split('@')[0] || 
+                          'User';
+            }
+            debugLog('User display name:', displayName);
+          } catch (userCheckError) {
+            debugLog('User data check failed, using fallback:', userCheckError);
+            displayName = user.user_metadata?.full_name || 
+                        user.user_metadata?.name || 
+                        user.email?.split('@')[0] || 
+                        'User';
+          }
+        }
+
+        // Update username displays
+        const usernameElement = document.getElementById('username');
+        const mobileUsernameElement = document.getElementById('mobile-username');
+        
+        if (usernameElement) {
+          usernameElement.textContent = displayName;
+        }
+        if (mobileUsernameElement) {
+          mobileUsernameElement.textContent = displayName;
+        }
+        
+        // Show/hide admin links based on admin status
+        const adminLink = document.getElementById('admin-link');
+        const mobileAdminLink = document.getElementById('mobile-admin-link');
+        
+        if (isAdmin) {
+          adminLink?.classList.remove('hidden');
+          mobileAdminLink?.classList.remove('hidden');
+        } else {
+          adminLink?.classList.add('hidden');
+          mobileAdminLink?.classList.add('hidden');
+        }
+        
+        debugLog('Authentication initialized successfully');
+        return true;
+        
+      } catch (error) {
+        debugLog('Error initializing auth:', error);
+        throw error;
+      }
+    }
+
+    // Logout function
+    async function logout() {
+      try {
+        if (client) {
+          const { error } = await client.auth.signOut();
+          if (error) {
+            debugLog('Logout error:', error);
+          }
+        }
+        
+        // Clear any stored data
+        currentUserId = null;
+        
+        // Redirect to login page
+        window.location.href = 'login.html';
+      } catch (error) {
+        debugLog('Error during logout:', error);
+        // Force redirect even if logout fails
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Load articles from Supabase or use mock data
+    async function loadArticles() {
+      try {
+        debugLog('Loading articles...');
+        showLoading();
+        
+        if (client) {
+          const { data, error } = await client
+            .from('artikel')
+            .select('*')
+            .order('tanggal_dibuat', { ascending: false });
+
+          if (error) throw error;
+
+          articles = data.map(article => ({
+            id: article.id_artikel,
+            title: article.judul_artikel,
+            content: article.isi_artikel,
+            author: article.penulis,
+            createdAt: article.tanggal_dibuat,
+            preview: article.preview,
+            image: article.gambar_artikel
+          }));
+          
+          debugLog('Articles loaded from database:', articles.length);
+        } else {
+          // Mock data for testing
+          articles = [
+            {
+              id: 1,
+              title: "Cara mengatasi stres",
+              content: "<h2>Understanding Stress</h2><p>Stress is a natural response to challenging situations. It can manifest in various ways and affect both our physical and mental health.</p><h3>Common Signs of Stress</h3><p>Physical symptoms may include headaches, muscle tension, fatigue, and changes in appetite. Emotional symptoms can include anxiety, irritability, depression, and feeling overwhelmed.</p><h3>Effective Stress Management Techniques</h3><p>There are many proven methods to manage stress effectively. Regular exercise, meditation, deep breathing exercises, and maintaining a healthy work-life balance are all important strategies.</p><p>Remember that seeking support from friends, family, or professionals is also a crucial part of stress management. Don't hesitate to reach out when you need help.</p>",
+              author: "GWS Team",
+              createdAt: "2025-06-28",
+              preview: "Learn effective techniques to manage and reduce stress in your daily life. Discover practical strategies that can help you maintain better mental health.",
+              image: null
+            },
+            {
+              id: 2,
+              title: "Mental Health Awareness",
+              content: "<h2>Mental Health Awareness</h2><p>Mental health is just as important as physical health. Taking care of your mental wellbeing should be a priority in everyone's life.</p><h3>Building Resilience</h3><p>Resilience is the ability to bounce back from difficult situations. It's a skill that can be developed through practice and self-awareness.</p><p>Some ways to build resilience include developing strong relationships, accepting change as part of life, setting realistic goals, and practicing self-care regularly.</p>",
+              author: "Dr. Smith",
+              createdAt: "2025-06-27",
+              preview: "Explore the importance of mental health awareness and learn how to build resilience in challenging times.",
+              image: null
+            }
+          ];
+          
+          debugLog('Using mock data:', articles.length);
+        }
+
+        filteredArticles = [...articles];
+        renderArticles();
+        hideError();
+        
+        // Update debug info
+        if (document.getElementById('debug-count')) {
+          document.getElementById('debug-count').textContent = articles.length;
+        }
+        
+      } catch (error) {
+        debugLog('Error loading articles:', error);
+        showError('Failed to load articles. Please check your connection and try again.');
+        articles = [];
+        filteredArticles = [];
+        renderArticles();
+      }
+    }
+
+    // Render articles to the page
+    function renderArticles() {
+      debugLog('Rendering articles:', filteredArticles.length);
+      const container = document.getElementById('articles-container');
+      
+      if (!container) {
+        debugLog('Error: articles-container not found');
+        return;
+      }
+      
+      if (filteredArticles.length === 0) {
+        container.innerHTML = `
+          <div class="no-articles col-span-full">
+            <i class="fas fa-file-alt text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">No Articles Found</h3>
+            <p class="text-gray-500">Try adjusting your search or filter criteria, or check back later for new articles.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredArticles.map(article => `
+        <div class="article-card" data-article-id="${article.id}">
+          ${article.image ? `
+            <img src="${escapeHtml(article.image)}" alt="${escapeHtml(article.title)}" class="article-image" onerror="this.style.display='none'">
+          ` : `
+            <div class="article-image bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <i class="fas fa-file-alt text-3xl text-blue-400"></i>
+            </div>
+          `}
+          
+          <div class="article-content">
+            <h3 class="text-xl font-bold text-[#2E619F] mb-2 line-clamp-2">${escapeHtml(article.title)}</h3>
+            <div class="article-meta mb-3">
+              <span><i class="fas fa-user mr-1"></i>${escapeHtml(article.author)}</span>
+              <span><i class="fas fa-calendar mr-1"></i>${formatDate(article.createdAt)}</span>
+            </div>
+            <p class="article-preview text-gray-600 line-clamp-3">${escapeHtml(article.preview || stripHtml(article.content).substring(0, 150) + '...')}</p>
+          </div>
+        </div>
+      `).join('');
+      
+      // Add click event listeners to each article card
+      const articleCards = container.querySelectorAll('.article-card');
+      articleCards.forEach(card => {
+        card.addEventListener('click', function() {
+          const articleId = this.getAttribute('data-article-id');
+          handleArticleClick(articleId);
+        });
+      });
+      
+      debugLog('Articles rendered successfully with click handlers');
+    }
+
+    // Handle article click with better error handling
+    function handleArticleClick(articleId) {
+      debugLog('Article clicked with ID:', articleId);
+      
+      // Update debug info
+      if (document.getElementById('debug-click')) {
+        document.getElementById('debug-click').textContent = articleId;
+      }
+      
+      try {
+        showArticleDetail(articleId);
+      } catch (error) {
+        debugLog('Error in handleArticleClick:', error);
+        showError('Error loading article. Please try again.');
+      }
+    }
+
+    // Show article detail with improved error handling
+    function showArticleDetail(articleId) {
+      debugLog('Showing article detail for ID:', articleId);
+      debugLog('Available articles:', articles.map(a => ({ id: a.id, title: a.title })));
+      
+      const article = articles.find(a => a.id == articleId); // Use == for loose comparison
+      
+      if (!article) {
+        debugLog('Article not found with ID:', articleId);
+        showError(`Article not found (ID: ${articleId}). Please try refreshing the page.`);
+        return;
+      }
+
+      try {
+        // Update detail view
+        document.getElementById('detail-title').textContent = article.title || 'Untitled';
+        document.getElementById('detail-preview').textContent = article.preview || '';
+        document.getElementById('detail-author').textContent = article.author || 'Unknown Author';
+        document.getElementById('detail-date').textContent = formatDate(article.createdAt);
+        document.getElementById('detail-body').innerHTML = article.content || '<p>No content available.</p>';
+
+        // Calculate reading time
+        const wordCount = stripHtml(article.content || '').split(/\s+/).length;
+        const readingTime = Math.ceil(wordCount / 200) || 1;
+        document.getElementById('detail-reading-time').textContent = `${readingTime} min read`;
+
+        // Add article image if available
+        const imageContainer = document.getElementById('detail-image-container');
+        if (article.image) {
+          imageContainer.innerHTML = `
+            <img src="${escapeHtml(article.image)}" alt="${escapeHtml(article.title)}" class="article-detail-image" onerror="this.style.display='none'">
+          `;
+        } else {
+          imageContainer.innerHTML = '';
+        }
+
+        // Update page title
+        document.title = `${article.title} - GWS`;
+
+        // Switch views
+        document.getElementById('articles-list-view').style.display = 'none';
+        document.getElementById('article-detail-view').style.display = 'block';
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+        
+        debugLog('Successfully loaded article:', article.title);
+      } catch (error) {
+        debugLog('Error displaying article:', error);
+        showError('Failed to display article. Please try again.');
+      }
+    }
+
+    // Show articles list
+    function showArticlesList() {
+      debugLog('Showing articles list');
+      document.title = 'Articles - GWS';
+      document.getElementById('article-detail-view').style.display = 'none';
+      document.getElementById('articles-list-view').style.display = 'block';
+    }
+
+    // Filter and search articles
+    function filterArticles() {
+      debugLog('Filtering articles...');
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+      const sortBy = document.getElementById('sort-filter').value;
+
+      filteredArticles = articles.filter(article => {
+        if (!searchTerm) return true;
+        
+        return (article.title || '').toLowerCase().includes(searchTerm) ||
+               (article.author || '').toLowerCase().includes(searchTerm) ||
+               stripHtml(article.content || '').toLowerCase().includes(searchTerm) ||
+               (article.preview && article.preview.toLowerCase().includes(searchTerm));
+      });
+
+      filteredArticles.sort((a, b) => {
+        switch (sortBy) {
+          case 'newest': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+          case 'oldest': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+          case 'title': return (a.title || '').localeCompare(b.title || '');
+          case 'author': return (a.author || '').localeCompare(b.author || '');
+          default: return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        }
+      });
+
+      renderArticles();
+      debugLog('Filtered articles:', filteredArticles.length);
+    }
+
+    // Utility functions
+    function formatDate(dateString) {
+      if (!dateString) return 'Unknown';
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'short', day: 'numeric'
+        });
+      } catch { 
+        return 'Invalid Date'; 
+      }
+    }
+
+    function stripHtml(html) {
+      if (!html) return '';
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || div.innerText || '';
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showLoading() {
+      const container = document.getElementById('articles-container');
+      if (container) {
+        container.innerHTML = `
+          <div class="loading col-span-full">
+            <i class="fas fa-spinner fa-spin text-2xl text-[#2E619F] mb-2"></i>
+            <p>Loading articles...</p>
+          </div>
+        `;
+      }
+    }
+
+    function showError(message) {
+      const errorContainer = document.getElementById('error-container');
+      if (errorContainer) {
+        errorContainer.innerHTML = `
+          <div class="error">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            ${escapeHtml(message)}
+          </div>
+        `;
+      }
+      debugLog('Error shown:', message);
+    }
+
+    function hideError() {
+      const errorContainer = document.getElementById('error-container');
+      if (errorContainer) {
+        errorContainer.innerHTML = '';
+      }
+    }
+
+    // Add error handler for uncaught errors
+    window.addEventListener('error', function(e) {
+      debugLog('Uncaught error:', e.error);
+      showError('An unexpected error occurred. Please refresh the page.');
+    });
+
+    // Handle authentication state changes
+    if (client) {
+      client.auth.onAuthStateChange((event, session) => {
+        debugLog('Auth state changed:', event);
+        
+        if (event === 'SIGNED_OUT' || !session) {
+          debugLog('User signed out, redirecting to login');
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    debugLog('Script loaded successfully');
+</script>
+</body>
+</html>

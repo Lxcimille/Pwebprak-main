@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Music</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .file-upload-btn {
+            background-color: #2E619F;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-btn:hover {
+            background-color: #1e4a7a;
+            transform: translateY(-1px);
+        }
+        
+        .form-input {
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            border-color: #2E619F;
+            box-shadow: 0 0 0 3px rgba(46, 97, 159, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #2E619F, #1e4a7a);
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 97, 159, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Navbar -->
+    <!-- Navbar -->
+<nav class="bg-[#2E619F] text-white p-4 md:p-6 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center">
+            <img src="../Illustrations/Logo.png" alt="GWS logo" class="h-8 md:h-10 w-auto mr-2">
+        </div>
+        <div class="hidden md:flex space-x-6 items-center">
+            <a href="dashboardadmin.html" id="admin-link" class="hover:underline hover:text-blue-200 transition hidden">Admin</a>
+            <a href="journal.html" class="hover:underline hover:text-blue-200 transition">Journal</a>
+            <a href="moodtracker.html" class="hover:underline hover:text-blue-200 transition">Tracker</a>
+            <a href="article.html" class="hover:underline hover:text-blue-200 transition">Articles</a>
+            <a href="music.html" class="hover:underline hover:text-blue-200 transition">Music</a>
+            
+            <!-- Avatar with Dropdown -->
+            <div class="relative group flex items-center space-x-1">
+                <button id="avatar-button" class="focus:outline-none">
+                    <img src="../Illustrations/Generic avatar.png" width="40" height="40" class="rounded-full cursor-pointer">
+                </button>
+                <span id="username" class="text-white font-bold">Loading...</span>
+                
+                <!-- Dropdown Menu -->
+                <div id="avatar-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 group-hover:block">
+                    <a href="userprofile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                    <a href="addreport.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Report a bug</a>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
+                </div>
+            </div>
+        </div>
+        <button class="md:hidden text-2xl" id="mobile-menu-button">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden mt-4 pb-4">
+        <div class="flex flex-col space-y-3">
+            <a href="dashboardadmin.html" id="mobile-admin-link" class="hover:text-blue-200 transition hidden">Admin</a>
+            <a href="journal.html" class="hover:text-blue-200 transition">Journal</a>
+            <a href="moodtracker.html" class="hover:text-blue-200 transition">Tracker</a>
+            <a href="article.html" class="hover:text-blue-200 transition">Articles</a>
+            <a href="music.html" class="hover:text-blue-200 transition">Music</a>
+            <div class="flex items-center space-x-2 pt-2 border-t border-blue-400">
+                <img src="../Illustrations/Generic avatar.png" width="32" height="32" class="rounded-full">
+                <span id="mobile-username" class="text-white font-bold">Loading...</span>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:underline text-left">Logout</button>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Page Title -->
+        <div class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#2E619F] mb-2">Add Music</h1>
+            <p class="text-gray-600">Upload your music and share it with the community</p>
+        </div>
+
+        <!-- Form -->
+        <form id="addMusicForm" class="bg-white rounded-xl shadow-lg p-6 md:p-8 space-y-8">
+            <!-- Title Section -->
+            <div class="space-y-3">
+                <label for="musicTitle" class="block text-lg font-semibold text-gray-800">
+                    Title
+                </label>
+                <input 
+                    type="text" 
+                    id="musicTitle" 
+                    name="musicTitle"
+                    placeholder="Input title here..."
+                    class="form-input w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:outline-none text-gray-700 placeholder-gray-400"
+                    required
+                >
+            </div>
+
+            <!-- Upload Music Section -->
+            <div class="space-y-4">
+                <label class="block text-lg font-semibold text-gray-800">
+                    Upload Music
+                </label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#2E619F] transition-colors">
+                    <input type="file" id="musicFile" name="musicFile" accept="audio/*" class="hidden" required>
+                    <button 
+                        type="button" 
+                        onclick="document.getElementById('musicFile').click()"
+                        class="file-upload-btn text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2"
+                    >
+                        <i class="fas fa-plus"></i>
+                        <span>Choose File</span>
+                    </button>
+                    <p class="mt-3 text-gray-500 text-sm">Supported formats: MP3, WAV, FLAC, AAC (Max 10MB recommended)</p>
+                    <div id="musicFileName" class="mt-3 text-[#2E619F] font-medium hidden"></div>
+                </div>
+            </div>
+
+            <!-- Upload Cover Photo Section -->
+            <div class="space-y-4">
+                <label class="block text-lg font-semibold text-gray-800">
+                    Upload Cover Photo
+                </label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#2E619F] transition-colors">
+                    <input type="file" id="coverPhoto" name="coverPhoto" accept="image/*" class="hidden">
+                    <button 
+                        type="button" 
+                        onclick="document.getElementById('coverPhoto').click()"
+                        class="file-upload-btn text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2"
+                    >
+                        <i class="fas fa-plus"></i>
+                        <span>Choose File</span>
+                    </button>
+                    <p class="mt-3 text-gray-500 text-sm">Supported formats: JPG, PNG, WEBP (Max 2MB recommended)</p>
+                    <div id="coverFileName" class="mt-3 text-[#2E619F] font-medium hidden"></div>
+                    <div id="coverPreview" class="mt-4 hidden">
+                        <img id="coverImage" class="mx-auto max-w-xs rounded-lg shadow-md" alt="Cover preview">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                <button 
+                    type="submit" 
+                    class="submit-btn text-white px-8 py-3 rounded-lg font-semibold flex-1 sm:flex-none"
+                >
+                    <i class="fas fa-upload mr-2"></i>
+                    Upload Music
+                </button>
+                <button 
+                    type="button" 
+                    onclick="resetForm()"
+                    class="border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex-1 sm:flex-none"
+                >
+                    <i class="fas fa-undo mr-2"></i>
+                    Reset
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md mx-4 text-center">
+            <div class="text-red-500 text-6xl mb-4">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Upload Failed</h3>
+            <p id="errorMessage" class="text-gray-600 mb-6">Something went wrong. Please try again.</p>
+            <button 
+                onclick="closeErrorModal()" 
+                class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+            >
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md mx-4 text-center">
+            <div class="text-green-500 text-6xl mb-4">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Success!</h3>
+            <p class="text-gray-600 mb-6">Your music has been uploaded successfully.</p>
+            <button 
+                onclick="closeModal()" 
+                class="bg-[#2E619F] text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xvkjvftrriznqbvszdzo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2a2p2ZnRycml6bnFidnN6ZHpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNzY4MzksImV4cCI6MjA2NDg1MjgzOX0.kRauc7Ts9NhNwdiiwwllHstLfIgJsB7Urf5obVMWbnk';
+        
+        // Initialize Supabase client
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // File upload handlers
+        document.getElementById('musicFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const fileNameDiv = document.getElementById('musicFileName');
+            if (file) {
+                // Check file size (recommend max 10MB for Base64)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Music file is too large. Please choose a file smaller than 10MB.');
+                    e.target.value = '';
+                    fileNameDiv.classList.add('hidden');
+                    return;
+                }
+                fileNameDiv.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileNameDiv.classList.remove('hidden');
+            } else {
+                fileNameDiv.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('coverPhoto').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const fileNameDiv = document.getElementById('coverFileName');
+            const previewDiv = document.getElementById('coverPreview');
+            const previewImg = document.getElementById('coverImage');
+            
+            if (file) {
+                // Check file size (recommend max 2MB for images)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Cover photo is too large. Please choose a file smaller than 2MB.');
+                    e.target.value = '';
+                    fileNameDiv.classList.add('hidden');
+                    previewDiv.classList.add('hidden');
+                    return;
+                }
+                
+                fileNameDiv.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileNameDiv.classList.remove('hidden');
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewDiv.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                fileNameDiv.classList.add('hidden');
+                previewDiv.classList.add('hidden');
+            }
+        });
+
+        // Convert file to Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Check if user is admin
+        async function checkAdminStatus() {
+            const { data: { user } } = await client.auth.getUser();
+            
+            if (!user) {
+                throw new Error('You must be logged in to upload music.');
+            }
+
+            // Check if user is admin
+            const { data: adminData, error } = await client
+                .from('admin')
+                .select('user_id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+                throw new Error(`Error checking admin status: ${error.message}`);
+            }
+
+            if (!adminData) {
+                throw new Error('Only administrators can upload music.');
+            }
+
+            return user;
+        }
+
+        // Function to get audio duration from file
+        function getAudioDuration(file) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio();
+                const url = URL.createObjectURL(file);
+            
+                audio.addEventListener('loadedmetadata', () => {
+                    URL.revokeObjectURL(url); // Clean up
+                    resolve(Math.round(audio.duration)); // Return duration in seconds (rounded)
+                });
+            
+                audio.addEventListener('error', () => {
+                    URL.revokeObjectURL(url); // Clean up
+                    reject(new Error('Could not load audio file to get duration'));
+                });
+            
+                audio.src = url;
+            });
+        }
+
+        // Convert seconds to MM:SS format
+        function formatDuration(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Form submission with Base64 encoding
+        document.getElementById('addMusicForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Check admin status first
+                const user = await checkAdminStatus();
+
+                // Get form data
+                const title = document.getElementById('musicTitle').value.trim();
+                const musicFile = document.getElementById('musicFile').files[0];
+                const coverPhoto = document.getElementById('coverPhoto').files[0];
+
+                if (!title || !musicFile) {
+                    throw new Error('Please fill in all required fields and select a music file.');
+                }
+
+                // Convert files to Base64
+                console.log('Converting music file to Base64...');
+                const musicBase64 = await fileToBase64(musicFile);
+                
+                let coverBase64 = null;
+                if (coverPhoto) {
+                    console.log('Converting cover photo to Base64...');
+                    coverBase64 = await fileToBase64(coverPhoto);
+                }
+
+                // Get audio duration
+                console.log('Getting audio duration...');
+                const audioDuration = await getAudioDuration(musicFile);
+                console.log('Audio duration:', audioDuration, 'seconds');
+
+                // Generate UUID for music ID
+                const musicId = crypto.randomUUID();
+
+                // Insert music record into database with Base64 data
+                console.log('Saving to database...');
+                const { data, error } = await client
+                    .from('music')
+                    .insert([
+                        {
+                            id_musik: musicId,
+                            judul_musik: title,
+                            music_url: musicBase64, // Store Base64 data instead of URL
+                            cover_url: coverBase64, // Store Base64 data instead of URL
+                            uploaded_by: user.id,
+                            durasi: formatDuration(audioDuration),
+                        }
+                    ])
+                    .select();
+
+                if (error) {
+                    throw new Error(`Database error: ${error.message}`);
+                }
+
+                console.log('Music uploaded successfully:', data);
+                showSuccessModal();
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                showErrorModal(error.message);
+            } finally {
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showErrorModal(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').classList.remove('hidden');
+            document.getElementById('errorModal').classList.add('flex');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+            document.getElementById('errorModal').classList.remove('flex');
+        }
+
+        function resetForm() {
+            document.getElementById('addMusicForm').reset();
+            document.getElementById('musicFileName').classList.add('hidden');
+            document.getElementById('coverFileName').classList.add('hidden');
+            document.getElementById('coverPreview').classList.add('hidden');
+        }
+
+        function showSuccessModal() {
+            document.getElementById('successModal').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.add('hidden');
+            document.getElementById('successModal').classList.remove('flex');
+            resetForm();
+            // Redirect to music page
+            window.location.href = 'addmusic.html';
+        }
+
+        // Load username and check admin status
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Get current user from Supabase
+                const { data: { user } } = await client.auth.getUser();
+                
+                if (user) {
+                    // Check if user is admin
+                    const { data: adminData } = await client
+                        .from('admin')
+                        .select('nama_admin')
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (!adminData) {
+                        // User is not admin, redirect or show message
+                        showErrorModal('Only administrators can access this page.');
+                        setTimeout(() => {
+                            window.location.href = 'music.html';
+                        }, 2000);
+                        return;
+                    }
+
+                    const displayName = adminData.nama_admin || user.user_metadata?.full_name || user.email || 'Admin';
+                    document.getElementById('username').textContent = displayName;
+                    document.getElementById('mobile-username').textContent = displayName;
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error getting user:', error);
+                // Fallback to localStorage
+                const username = localStorage.getItem('username');
+                if (username) {
+                    document.getElementById('username').textContent = username;
+                    document.getElementById('mobile-username').textContent = username;
+                }
+            }
+        });
+
+        // Avatar dropdown functionality
+        const avatarButton = document.getElementById('avatar-button');
+        const avatarDropdown = document.getElementById('avatar-dropdown');
+
+        avatarButton.addEventListener('click', () => {
+            avatarDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!avatarButton.contains(e.target) && !avatarDropdown.contains(e.target)) {
+                avatarDropdown.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
